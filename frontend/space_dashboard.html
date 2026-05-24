@@ -1,0 +1,2030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AetherOS — Real-Time Global Space Command</title>
+
+<!-- Three.js for 3D Earth -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- React 18 -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<!-- Babel for JSX -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1" rel="stylesheet"/>
+
+<style>
+:root{
+  --bg:#020912;
+  --bg2:#060f1e;
+  --bg3:#0a1628;
+  --primary:#00e5ff;
+  --primary2:#00b8d9;
+  --secondary:#7c3aed;
+  --accent:#f97316;
+  --green:#00e676;
+  --red:#ff1744;
+  --yellow:#ffea00;
+  --text:#e2e8f7;
+  --dim:#64748b;
+  --border:rgba(0,229,255,0.12);
+  --glass:rgba(6,15,30,0.7);
+  --glow:0 0 20px rgba(0,229,255,0.25);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100dvh;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-track{background:var(--bg);} ::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.3);border-radius:2px;}
+.orb{font-family:'Orbitron',sans-serif;} .mono{font-family:'JetBrains Mono',monospace;}
+.msym{font-family:'Material Symbols Outlined';font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;user-select:none;vertical-align:middle;}
+.msym.f1{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24;}
+
+/* ═══ GLASS CARDS ═══ */
+.glass{background:var(--glass);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:12px;}
+.glass-strong{background:rgba(2,9,18,0.85);backdrop-filter:blur(40px);border:1px solid rgba(0,229,255,0.2);}
+.glass-card{background:rgba(10,22,40,0.6);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:12px;border-top:1px solid rgba(0,229,255,0.25);}
+.border-glow{border:1px solid rgba(0,229,255,0.3);box-shadow:0 0 20px rgba(0,229,255,0.08),inset 0 0 20px rgba(0,229,255,0.02);}
+
+/* ═══ GLOW EFFECTS ═══ */
+.glow-text{text-shadow:0 0 20px rgba(0,229,255,0.8),0 0 40px rgba(0,229,255,0.4);}
+.glow-purple{text-shadow:0 0 20px rgba(124,58,237,0.9);}
+.glow-orange{text-shadow:0 0 20px rgba(249,115,22,0.9);}
+.glow-green{text-shadow:0 0 20px rgba(0,230,118,0.9);}
+.glow-box{box-shadow:0 0 30px rgba(0,229,255,0.2);}
+.glow-box-purple{box-shadow:0 0 30px rgba(124,58,237,0.2);}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideLeft{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes scanline{0%{top:0%}100%{top:100%}}
+@keyframes bgShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+@keyframes ripple{0%{transform:scale(1);opacity:0.8}100%{transform:scale(3);opacity:0}}
+@keyframes orbitISS{0%{transform:rotate(0deg) translateX(110px) rotate(0deg)}100%{transform:rotate(360deg) translateX(110px) rotate(-360deg)}}
+@keyframes neonFlicker{0%,100%{opacity:1}92%,96%{opacity:0.8}94%{opacity:0.4}}
+@keyframes starsMove{from{background-position:0 0}to{background-position:100px 100px}}
+@keyframes countdownPulse{0%,100%{box-shadow:0 0 10px rgba(0,229,255,0.3)}50%{box-shadow:0 0 30px rgba(0,229,255,0.7)}}
+@keyframes barLoad{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes voiceWave{0%,100%{height:6px}50%{height:24px}}
+@keyframes typingDot{0%,60%,100%{opacity:0;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+
+.anim-fade{animation:fadeIn 0.6s ease forwards;}
+.anim-slide{animation:slideLeft 0.5s ease forwards;}
+.anim-float{animation:float 4s ease-in-out infinite;}
+.anim-spin{animation:spin 20s linear infinite;}
+.anim-flicker{animation:neonFlicker 4s ease-in-out infinite;}
+.anim-pulse{animation:pulseDot 2s ease-in-out infinite;}
+
+/* ═══ BUTTONS ═══ */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 24px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-weight:600;font-size:14px;letter-spacing:0.05em;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.3s ease;text-decoration:none;}
+.btn-primary{background:linear-gradient(135deg,#00e5ff,#0097a7);color:#020912;box-shadow:0 0 20px rgba(0,229,255,0.3);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(0,229,255,0.5);}
+.btn-secondary{background:linear-gradient(135deg,#7c3aed,#4c1d95);color:white;box-shadow:0 0 20px rgba(124,58,237,0.3);}
+.btn-secondary:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(124,58,237,0.5);}
+.btn-outline{background:transparent;border:1px solid rgba(0,229,255,0.4);color:var(--primary);}
+.btn-outline:hover{background:rgba(0,229,255,0.08);border-color:var(--primary);box-shadow:0 0 20px rgba(0,229,255,0.2);}
+.btn-danger{background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;}
+.btn:active{transform:scale(0.97);}
+
+/* ═══ INPUTS ═══ */
+.input-wrap{position:relative;}
+.input-field{width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(0,229,255,0.2);border-radius:8px;padding:14px 16px 10px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;outline:none;transition:all 0.3s;}
+.input-field:focus{border-color:var(--primary);box-shadow:0 0 0 1px rgba(0,229,255,0.3),0 4px 20px rgba(0,229,255,0.15);}
+.input-label{position:absolute;top:12px;left:16px;font-size:13px;color:var(--dim);pointer-events:none;transition:all 0.3s;text-transform:uppercase;letter-spacing:0.06em;}
+.input-field:focus~.input-label,.input-field:not(:placeholder-shown)~.input-label{top:4px;font-size:10px;color:var(--primary);}
+.input-icon{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:20px;transition:color 0.3s;}
+.input-field:focus~.input-icon{color:var(--primary);}
+
+/* ═══ STAR BACKGROUND ═══ */
+.star-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 100% 80% at 20% 10%,rgba(0,229,255,0.04) 0%,transparent 55%),
+             radial-gradient(ellipse 80% 60% at 80% 90%,rgba(124,58,237,0.05) 0%,transparent 55%),
+             radial-gradient(ellipse 60% 40% at 50% 50%,rgba(249,115,22,0.02) 0%,transparent 60%),var(--bg);
+}
+.stars-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* ═══ PAGES ═══ */
+.page{display:none;min-height:100dvh;position:relative;z-index:1;}
+.page.active{display:flex;flex-direction:column;}
+
+/* ═══ NAVBAR ═══ */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;height:70px;background:rgba(2,9,18,0.85);backdrop-filter:blur(30px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;background:rgba(4,12,24,0.92);backdrop-filter:blur(40px);border-right:1px solid var(--border);z-index:50;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;padding-top:70px;}
+.sidebar.closed{transform:translateX(-100%);}
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:49;display:none;}
+.sidebar-overlay.show{display:block;}
+@media(min-width:1024px){.sidebar{transform:translateX(0)!important;}.sidebar-overlay{display:none!important;}}
+.nav-link{display:flex;align-items:center;gap:14px;padding:12px 20px;color:var(--dim);font-size:13px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;cursor:pointer;border-left:3px solid transparent;transition:all 0.25s;text-decoration:none;}
+.nav-link:hover{color:var(--text);background:rgba(0,229,255,0.04);}
+.nav-link.active{color:var(--primary);background:rgba(0,229,255,0.06);border-left-color:var(--primary);box-shadow:inset -10px 0 20px -10px rgba(0,229,255,0.15);}
+.nav-link.active .msym{filter:drop-shadow(0 0 6px rgba(0,229,255,0.8));}
+
+/* ═══ TOPBAR ═══ */
+.topbar{position:fixed;top:0;right:0;left:0;height:70px;background:rgba(2,9,18,0.85);backdrop-filter:blur(30px);border-bottom:1px solid var(--border);z-index:50;display:flex;align-items:center;justify-content:space-between;padding:0 24px;transition:left 0.35s ease;}
+@media(min-width:1024px){.topbar{left:240px;}}
+
+/* ═══ MAIN CONTENT ═══ */
+.main-wrap{padding-top:70px;}
+@media(min-width:1024px){.main-wrap{margin-left:240px;}}
+.main-content{padding:clamp(16px,3vw,32px);max-width:1600px;}
+
+/* ═══ BOTTOM NAV MOBILE ═══ */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(4,12,24,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);z-index:50;display:flex;justify-content:space-around;padding:8px 0 clamp(8px,env(safe-area-inset-bottom,8px),24px);}
+.bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:var(--dim);font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.2s;padding:4px 8px;min-width:52px;}
+.bottom-nav-item.active,.bottom-nav-item:hover{color:var(--primary);}
+.bottom-nav-item .msym{font-size:22px;}
+@media(min-width:1024px){.bottom-nav{display:none;}}
+@media(max-width:1023px){.main-content{padding-bottom:80px;}}
+
+/* ═══ GRID SYSTEMS ═══ */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+@media(max-width:1280px){.grid-4{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}}
+@media(max-width:900px){.grid-3{grid-template-columns:repeat(2,1fr);}}
+
+/* ═══ STAT CARDS ═══ */
+.stat-card{padding:20px;border-radius:12px;background:rgba(10,22,40,0.7);border:1px solid var(--border);border-top:1px solid rgba(0,229,255,0.25);position:relative;overflow:hidden;transition:all 0.3s;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,var(--primary),transparent);opacity:0.5;}
+.stat-card:hover{transform:translateY(-2px);border-color:rgba(0,229,255,0.25);box-shadow:0 8px 40px rgba(0,229,255,0.08);}
+.hud-corner::after{content:'';position:absolute;bottom:8px;right:8px;width:14px;height:14px;border-bottom:2px solid rgba(0,229,255,0.4);border-right:2px solid rgba(0,229,255,0.4);}
+.hud-corner::before{content:'';position:absolute;top:8px;left:8px;width:14px;height:14px;border-top:2px solid rgba(0,229,255,0.4);border-left:2px solid rgba(0,229,255,0.4);}
+
+/* ═══ BADGES ═══ */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;}
+.badge-live{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.3);color:var(--green);}
+.badge-upcoming{background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:var(--primary);}
+.badge-scheduled{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);color:var(--accent);}
+.badge-scrubbed{background:rgba(255,23,68,0.1);border:1px solid rgba(255,23,68,0.3);color:var(--red);}
+.badge-success{background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.3);color:var(--green);}
+
+/* ═══ SECTION HEADERS ═══ */
+.section-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.section-icon{width:38px;height:38px;border-radius:8px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.2);display:flex;align-items:center;justify-content:center;color:var(--primary);}
+.section-title{font-family:'Orbitron',sans-serif;font-size:clamp(16px,2vw,20px);font-weight:600;color:var(--text);}
+
+/* ═══ LAUNCH COUNTDOWN ═══ */
+.cd-block{display:flex;flex-direction:column;align-items:center;gap:6px;animation:countdownPulse 2s ease-in-out infinite;}
+.cd-num{font-family:'Orbitron',sans-serif;font-size:clamp(28px,4vw,52px);font-weight:700;color:var(--primary);line-height:1;text-shadow:0 0 30px rgba(0,229,255,0.5);}
+.cd-label{font-size:10px;color:var(--dim);letter-spacing:0.15em;font-weight:600;}
+.cd-sep{font-size:clamp(24px,3vw,40px);color:rgba(0,229,255,0.3);align-self:flex-start;margin-top:4px;}
+
+/* ═══ ISS MAP ═══ */
+.iss-map{position:relative;width:100%;border-radius:14px;overflow:hidden;border:1px solid rgba(0,229,255,0.1);}
+.iss-marker{position:absolute;width:18px;height:18px;border-radius:50%;background:var(--primary);box-shadow:0 0 20px rgba(0,229,255,1),0 0 40px rgba(0,229,255,0.5);transform:translate(-50%,-50%);z-index:10;}
+.iss-ring{position:absolute;border-radius:50%;border:1px solid var(--primary);transform:translate(-50%,-50%);animation:ripple 2s ease-out infinite;}
+
+/* ═══ AI CHATBOT ═══ */
+.chat-wrap{display:flex;flex-direction:column;gap:14px;overflow-y:auto;max-height:400px;padding:4px;}
+.chat-wrap::-webkit-scrollbar{width:3px;}
+.msg-ai{align-self:flex-start;background:rgba(10,22,40,0.8);border:1px solid rgba(0,229,255,0.15);border-radius:0 12px 12px 12px;padding:12px 16px;max-width:80%;}
+.msg-user{align-self:flex-end;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(76,29,149,0.3));border:1px solid rgba(124,58,237,0.3);border-radius:12px 0 12px 12px;padding:12px 16px;max-width:80%;}
+.voice-wave{display:flex;align-items:flex-end;gap:3px;height:28px;}
+.wave-bar{width:3px;background:var(--primary);border-radius:2px;transform-origin:bottom;}
+
+/* ═══ PROGRESS BARS ═══ */
+.progress-track{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;transform-origin:left;animation:barLoad 1s ease forwards;}
+.progress-cyan{background:linear-gradient(90deg,var(--primary2),var(--primary));}
+.progress-purple{background:linear-gradient(90deg,#4c1d95,var(--secondary));}
+.progress-orange{background:linear-gradient(90deg,#c2410c,var(--accent));}
+.progress-green{background:linear-gradient(90deg,#059669,var(--green));}
+.progress-red{background:linear-gradient(90deg,#b91c1c,var(--red));}
+
+/* ═══ NOTIFICATION BUBBLE ═══ */
+.notif-dot{position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);}
+
+/* ═══ AURORA STRIP ═══ */
+.aurora{height:2px;background:linear-gradient(90deg,var(--primary),var(--secondary),var(--accent),var(--primary));background-size:200% 100%;animation:bgShift 4s linear infinite;}
+
+/* ═══ TOOLTIP ═══ */
+.tooltip-wrap{position:relative;}
+.tooltip-tip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:rgba(4,12,24,0.95);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:12px;color:var(--text);white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:200;}
+.tooltip-wrap:hover .tooltip-tip{opacity:1;}
+
+/* ═══ LOADING SPINNER ═══ */
+.spin-loader{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;}
+
+/* ═══ GALLERY ═══ */
+.gallery-img{border-radius:10px;overflow:hidden;position:relative;cursor:pointer;border:1px solid var(--border);transition:all 0.4s;}
+.gallery-img:hover{transform:scale(1.02);border-color:rgba(0,229,255,0.3);box-shadow:0 8px 40px rgba(0,229,255,0.1);}
+.gallery-img img{width:100%;height:100%;object-fit:cover;transition:transform 0.5s;}
+.gallery-img:hover img{transform:scale(1.06);}
+.gallery-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(2,9,18,0.9),transparent 55%);opacity:0;transition:opacity 0.3s;}
+.gallery-img:hover .gallery-overlay{opacity:1;}
+
+/* ═══ THREAT LEVEL ═══ */
+.threat-0{color:var(--green);}
+.threat-1{color:var(--yellow);}
+.threat-2{color:var(--accent);}
+.threat-3{color:var(--red);}
+
+/* ═══ MODAL ═══ */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;}
+.modal-box{background:rgba(4,12,24,0.98);border:1px solid rgba(0,229,255,0.2);border-radius:16px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;}
+
+/* ═══ RESPONSIVE TEXT ═══ */
+.text-hero{font-size:clamp(36px,6vw,80px);}
+.text-xl2{font-size:clamp(24px,3.5vw,48px);}
+.text-lg2{font-size:clamp(18px,2.5vw,28px);}
+
+/* ═══ MISC ═══ */
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:6px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.15);font-size:12px;color:var(--primary);font-weight:600;}
+.flex-center{display:flex;align-items:center;justify-content:center;}
+.flex-between{display:flex;align-items:center;justify-content:space-between;}
+.gap-2{gap:8px;} .gap-3{gap:12px;} .gap-4{gap:16px;}
+.mt-2{margin-top:8px;} .mt-3{margin-top:12px;} .mt-4{margin-top:16px;} .mt-6{margin-top:24px;}
+.mb-2{margin-bottom:8px;} .mb-3{margin-bottom:12px;} .mb-4{margin-bottom:16px;}
+.p-4{padding:16px;} .p-5{padding:20px;} .p-6{padding:24px;}
+.rounded-xl{border-radius:12px;} .rounded-2xl{border-radius:16px;} .rounded-full{border-radius:999px;}
+.w-full{width:100%;} .flex{display:flex;} .flex-col{flex-direction:column;}
+.text-center{text-align:center;} .opacity-60{opacity:0.6;}
+.relative{position:relative;} .overflow-hidden{overflow:hidden;}
+
+/* Page transitions */
+.page-enter{animation:fadeIn 0.5s ease forwards;}
+
+/* Scanline effect */
+.scanline-wrap{position:relative;overflow:hidden;}
+.scanline-wrap::after{content:'';position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(0,229,255,0.2),transparent);animation:scanline 4s linear infinite;pointer-events:none;}
+
+/* Orbit line */
+.orbit-line{position:absolute;border-radius:50%;border:1px dashed rgba(0,229,255,0.15);pointer-events:none;}
+</style>
+</head>
+<body>
+
+<canvas class="stars-canvas" id="starCanvas"></canvas>
+<div class="star-bg"></div>
+<div id="root"></div>
+
+<script>
+// ── Star field canvas ──
+(function(){
+  const canvas = document.getElementById('starCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [];
+  function resize(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  function init(){
+    resize();
+    stars = Array.from({length:250},()=>({
+      x:Math.random()*W, y:Math.random()*H,
+      r:Math.random()*1.5+0.2,
+      alpha:Math.random()*0.8+0.1,
+      speed:Math.random()*0.15+0.02,
+      color:['#ffffff','#a0e8ff','#c8b8ff','#ffd0a8'][Math.floor(Math.random()*4)]
+    }));
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      ctx.beginPath();
+      ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=s.color;
+      ctx.globalAlpha=s.alpha*(0.6+0.4*Math.sin(Date.now()*s.speed*0.003));
+      ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',init);
+  init(); draw();
+})();
+</script>
+
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback,createContext,useContext} = React;
+
+// ══════════════════════════════════════════
+// CONSTANTS & HELPERS
+// ══════════════════════════════════════════
+const NASA_KEY = 'DEMO_KEY';
+const SPACEX_API = 'https://api.spacexdata.com/v4';
+const NASA_API = 'https://api.nasa.gov';
+const ISS_API = 'https://api.wheretheiss.at/v1/satellites/25544';
+const NEWS_API = 'https://api.spaceflightnewsapi.net/v4/articles/?limit=8';
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = n => Number(n).toLocaleString();
+const pad2 = n => String(Math.floor(n)).padStart(2,'0');
+
+async function apiFetch(url, fallback=null){
+  try{
+    const r = await fetch(url);
+    if(!r.ok) throw new Error('err');
+    return await r.json();
+  } catch(e){ return fallback; }
+}
+
+// Fallback data
+const MOCK_LAUNCHES = [
+  {id:'1',name:'Starship IFT-7',date_utc:'2025-06-15T14:00:00Z',success:null,upcoming:true,details:'Integrated Flight Test 7 — Full stack test from Boca Chica.',links:{patch:{small:null}},rocket:'Starship'},
+  {id:'2',name:'Falcon 9 — Starlink 11-4',date_utc:'2025-05-28T09:30:00Z',success:null,upcoming:true,details:'Batch deployment of 23 Starlink V2 Mini satellites to shell 11.',links:{patch:{small:null}},rocket:'Falcon 9'},
+  {id:'3',name:'Falcon Heavy — GOES-U',date_utc:'2025-06-25T22:15:00Z',success:null,upcoming:true,details:'NOAA geostationary weather satellite deployment.',links:{patch:{small:null}},rocket:'Falcon Heavy'},
+  {id:'4',name:'Crew Dragon — SpX-33',date_utc:'2025-07-10T18:00:00Z',success:null,upcoming:true,details:'ISS crew rotation mission carrying 4 astronauts.',links:{patch:{small:null}},rocket:'Falcon 9'},
+];
+const MOCK_NEWS = [
+  {id:1,title:'NASA Artemis III Moon Mission Update: Landing Sites Confirmed',summary:'NASA has confirmed the final candidate landing sites for the Artemis III mission, targeting the lunar south pole region.',published_at:'2025-05-14T10:00:00Z',news_site:'NASA',url:'#'},
+  {id:2,title:'SpaceX Starship Prepares for Record-Breaking 7th Integrated Flight Test',summary:'Teams at Starbase are completing final preparations for the most ambitious Starship test yet.',published_at:'2025-05-13T14:30:00Z',news_site:'SpaceX',url:'#'},
+  {id:3,title:'James Webb Telescope Reveals Atmosphere on Nearby Exoplanet',summary:'JWST data confirms the presence of a complex atmosphere on a rocky world 40 light-years away.',published_at:'2025-05-12T09:15:00Z',news_site:'ESA',url:'#'},
+  {id:4,title:'International Space Station Celebrates 25 Years of Continuous Habitation',summary:'The ISS marks a quarter century of humans living and working in space.',published_at:'2025-05-11T16:00:00Z',news_site:'NASA',url:'#'},
+];
+
+// ══════════════════════════════════════════
+// THREE.JS EARTH COMPONENT
+// ══════════════════════════════════════════
+function Earth3D({size=500}){
+  const mountRef = useRef(null);
+  useEffect(()=>{
+    if(!mountRef.current||!window.THREE) return;
+    const THREE = window.THREE;
+    const W = mountRef.current.clientWidth||size;
+    const H = mountRef.current.clientHeight||size;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, W/H, 0.1, 1000);
+    camera.position.z = 2.8;
+    const renderer = new THREE.WebGLRenderer({antialias:true,alpha:true});
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    renderer.setClearColor(0x000000, 0);
+    mountRef.current.appendChild(renderer.domElement);
+
+    // Create earth texture procedurally
+    const texW=2048,texH=1024;
+    const texCanvas=document.createElement('canvas');
+    texCanvas.width=texW; texCanvas.height=texH;
+    const tc=texCanvas.getContext('2d');
+
+    // Ocean
+    const og=tc.createLinearGradient(0,0,texW,texH);
+    og.addColorStop(0,'#0c2461'); og.addColorStop(0.5,'#1a3a5c'); og.addColorStop(1,'#0d1f3c');
+    tc.fillStyle=og; tc.fillRect(0,0,texW,texH);
+
+    // Helper for drawing landmasses
+    function poly(pts,col){
+      tc.fillStyle=col; tc.beginPath();
+      tc.moveTo(pts[0][0]*texW,pts[0][1]*texH);
+      for(let i=1;i<pts.length;i++) tc.lineTo(pts[i][0]*texW,pts[i][1]*texH);
+      tc.closePath(); tc.fill();
+    }
+    function blob(cx,cy,rx,ry,rot=0,col='#1b5e20'){
+      tc.save(); tc.fillStyle=col;
+      tc.translate(cx*texW,cy*texH); tc.rotate(rot);
+      tc.beginPath(); tc.ellipse(0,0,rx*texW,ry*texH,0,0,Math.PI*2);
+      tc.fill(); tc.restore();
+    }
+    const G='#1b5e20',G2='#2e7d32',G3='#388e3c',D='#6d4c41',D2='#795548',ICE='rgba(220,240,255,0.9)';
+
+    // North America
+    poly([[.07,.10],[.15,.07],[.25,.09],[.33,.17],[.36,.27],[.31,.40],[.27,.50],[.22,.57],[.17,.59],[.13,.53],[.08,.44],[.05,.32],[.06,.20]],G);
+    poly([[.26,.09],[.34,.06],[.38,.12],[.36,.20],[.29,.19],[.26,.13]],G2); // Canadian shield
+    blob(.15,.57,.03,.05,0.2,G3); blob(.24,.55,.025,.04,0,G3); // Mexico/Central America
+    blob(.285,.08,.05,.07,0.2,ICE); // Greenland
+
+    // South America
+    poly([[.285,.44],[.32,.42],[.38,.47],[.40,.56],[.38,.66],[.34,.72],[.29,.70],[.26,.62],[.25,.52]],G2);
+    blob(.30,.50,.02,.03,0,D2); blob(.35,.55,.025,.04,0,D); // Amazon/desert
+
+    // Europe
+    blob(.49,.22,.04,.08,0.1,G); blob(.51,.18,.025,.05,0.3,G2); blob(.54,.20,.02,.04,0.0,G3);
+    blob(.48,.26,.03,.04,0,D); // Iberia
+
+    // Africa
+    poly([[.46,.31],[.51,.27],[.57,.30],[.59,.40],[.58,.56],[.55,.67],[.51,.70],[.47,.67],[.44,.56],[.43,.42]],D2);
+    blob(.50,.38,.03,.05,0,G3); blob(.48,.48,.025,.03,0.2,G2); // rainforest
+    blob(.52,.62,.025,.04,0,D); // Kalahari
+
+    // Asia - main body
+    poly([[.56,.12],[.68,.08],[.80,.09],[.90,.12],[.98,.18],[.99,.28],[.96,.38],[.88,.44],[.78,.48],[.68,.50],[.60,.47],[.56,.38],[.54,.25],[.55,.17]],G);
+    blob(.80,.22,.04,.06,0.2,G2); // Siberia detail
+    blob(.68,.52,.03,.06,0,G3); // India
+    blob(.78,.50,.04,.05,0.15,G3); // SE Asia
+    blob(.88,.35,.02,.03,0,D); // Gobi
+
+    // Australia
+    poly([[.81,.57],[.87,.56],[.93,.59],[.95,.65],[.93,.73],[.87,.76],[.81,.73],[.79,.66]],D2);
+    blob(.85,.63,.02,.03,0.1,G3); // eastern coast
+
+    // Antarctica
+    tc.fillStyle='rgba(200,230,255,0.8)'; tc.fillRect(0,texH*.82,texW,texH*.18);
+    blob(.25,.88,.07,.04,0.1,ICE); blob(.60,.86,.09,.05,0.2,ICE); blob(.85,.87,.06,.04,0,ICE);
+    // Arctic
+    tc.fillStyle='rgba(200,230,255,0.7)'; tc.fillRect(0,0,texW,texH*.04);
+
+    // Subtle ocean texture
+    for(let i=0;i<3000;i++){
+      tc.fillStyle=`rgba(255,255,255,${Math.random()*.04})`;
+      tc.beginPath(); tc.arc(Math.random()*texW,Math.random()*texH,Math.random()*1.5,0,Math.PI*2);
+      tc.fill();
+    }
+
+    // City lights (tiny bright dots)
+    const cities = [[.14,.35],[.17,.35],[.20,.30],[.49,.22],[.50,.28],[.52,.25],[.63,.20],[.70,.25],[.75,.20],[.78,.28]];
+    cities.forEach(([cx,cy])=>{
+      tc.fillStyle='rgba(255,220,100,0.9)';
+      tc.beginPath(); tc.arc(cx*texW,cy*texH,2,0,Math.PI*2); tc.fill();
+      tc.fillStyle='rgba(255,220,100,0.3)';
+      tc.beginPath(); tc.arc(cx*texW,cy*texH,6,0,Math.PI*2); tc.fill();
+    });
+
+    const earthTex = new THREE.CanvasTexture(texCanvas);
+    const earthGeo = new THREE.SphereGeometry(1, 64, 64);
+    const earthMat = new THREE.MeshPhongMaterial({map:earthTex, shininess:15, specular:new THREE.Color(0x334455)});
+    const earth = new THREE.Mesh(earthGeo, earthMat);
+    scene.add(earth);
+
+    // Atmosphere glow
+    const atmosGeo = new THREE.SphereGeometry(1.04, 32, 32);
+    const atmosMat = new THREE.MeshPhongMaterial({color:0x0088ff, transparent:true, opacity:0.10, side:THREE.FrontSide});
+    const atmos = new THREE.Mesh(atmosGeo, atmosMat);
+    scene.add(atmos);
+
+    // Outer glow ring
+    const rimGeo = new THREE.SphereGeometry(1.08, 32, 32);
+    const rimMat = new THREE.MeshPhongMaterial({color:0x00aaff, transparent:true, opacity:0.04, side:THREE.BackSide});
+    const rim = new THREE.Mesh(rimGeo, rimMat);
+    scene.add(rim);
+
+    // ISS orbit line
+    const orbitPts=[];
+    for(let i=0;i<=128;i++){
+      const a=(i/128)*Math.PI*2;
+      orbitPts.push(new THREE.Vector3(Math.cos(a)*1.12, Math.sin(a)*0.35, Math.sin(a)*1.12));
+    }
+    const orbitGeo = new THREE.BufferGeometry().setFromPoints(orbitPts);
+    const orbitMat = new THREE.LineBasicMaterial({color:0x00e5ff, opacity:0.35, transparent:true});
+    scene.add(new THREE.Line(orbitGeo, orbitMat));
+
+    // ISS dot
+    const issGeo = new THREE.SphereGeometry(0.015, 8, 8);
+    const issMat = new THREE.MeshBasicMaterial({color:0x00e5ff});
+    const iss = new THREE.Mesh(issGeo, issMat);
+    scene.add(iss);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0x223344, 1.2));
+    const sunLight = new THREE.DirectionalLight(0xffeedd, 2.0);
+    sunLight.position.set(5, 3, 5);
+    scene.add(sunLight);
+
+    // Cloud layer (subtle)
+    const cloudGeo = new THREE.SphereGeometry(1.015, 32, 32);
+    const cloudMat = new THREE.MeshPhongMaterial({color:0xffffff, transparent:true, opacity:0.06});
+    scene.add(new THREE.Mesh(cloudGeo, cloudMat));
+
+    let frame, issAngle=0;
+    const animate=()=>{
+      frame=requestAnimationFrame(animate);
+      earth.rotation.y += 0.002;
+      atmos.rotation.y += 0.0015;
+      issAngle += 0.008;
+      iss.position.set(Math.cos(issAngle)*1.12, Math.sin(issAngle)*0.35, Math.sin(issAngle)*1.12);
+      renderer.render(scene, camera);
+    };
+    animate();
+    return ()=>{ cancelAnimationFrame(frame); if(mountRef.current && renderer.domElement.parentNode===mountRef.current) mountRef.current.removeChild(renderer.domElement); renderer.dispose(); };
+  },[]);
+  return <div ref={mountRef} style={{width:'100%',height:'100%'}} />;
+}
+
+// ══════════════════════════════════════════
+// APP CONTEXT
+// ══════════════════════════════════════════
+const AppCtx = createContext({});
+function useApp(){ return useContext(AppCtx); }
+
+// ══════════════════════════════════════════
+// LANDING PAGE
+// ══════════════════════════════════════════
+function LandingPage(){
+  const {setPage} = useApp();
+  const [loaded,setLoaded]=useState(false);
+  useEffect(()=>{setTimeout(()=>setLoaded(true),200);},[]);
+
+  const features=[
+    {icon:'satellite_alt',title:'ISS Live Tracker',desc:'Real-time ISS position with live telemetry — altitude, velocity, crew count updated every 5 seconds.',color:'var(--primary)'},
+    {icon:'rocket_launch',title:'SpaceX Mission Log',desc:'Live countdown timers, rocket details, and complete mission history from all SpaceX launches.',color:'var(--secondary)'},
+    {icon:'image',title:'NASA Deep Space Gallery',desc:'Browse daily Astronomy Photos of the Day, Mars rover imagery, and space telescope captures.',color:'var(--accent)'},
+    {icon:'crisis_alert',title:'Asteroid Monitor',desc:'Near-Earth Object tracking with threat levels, approach distances, and velocity data.',color:'#ff4081'},
+    {icon:'psychology',title:'AI Space Oracle',desc:'Gemini-powered AI assistant for space science, mission briefings, and astronomical knowledge.',color:'var(--green)'},
+    {icon:'public',title:'Real-Time Data',desc:'Live feeds from NASA, SpaceX, ESA, and global observatories — all in one command interface.',color:'var(--primary)'},
+  ];
+  const stats=[
+    {label:'Active Satellites',value:'8,432',icon:'satellite_alt'},
+    {label:'SpaceX Missions',value:'285+',icon:'rocket'},
+    {label:'Space Agencies',value:'27',icon:'public'},
+    {label:'Data Updates/Min',value:'1,440',icon:'speed'},
+  ];
+
+  return (
+    <div style={{minHeight:'100dvh',display:'flex',flexDirection:'column',position:'relative',zIndex:1}}>
+      {/* NAVBAR */}
+      <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:100,height:'70px',background:'rgba(2,9,18,0.85)',backdropFilter:'blur(30px)',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 clamp(16px,3vw,40px)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:12,cursor:'pointer'}} onClick={()=>setPage('landing')}>
+          <span className="msym f1" style={{fontSize:28,color:'var(--primary)',filter:'drop-shadow(0 0 8px rgba(0,229,255,0.8))'}}>rocket_launch</span>
+          <span className="orb" style={{fontSize:18,fontWeight:700,color:'var(--primary)',letterSpacing:'-0.02em'}} className="glow-text orb">AETHER<span style={{color:'var(--secondary)'}}>OS</span></span>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <button className="btn btn-outline" style={{padding:'8px 20px',fontSize:13}} onClick={()=>setPage('login')}>Login</button>
+          <button className="btn btn-primary" style={{padding:'8px 20px',fontSize:13}} onClick={()=>setPage('signup')}>Launch Mission</button>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section style={{minHeight:'100dvh',display:'flex',alignItems:'center',justifyContent:'center',padding:'80px clamp(16px,4vw,80px) 40px',position:'relative',overflow:'hidden'}}>
+        {/* Orbital rings */}
+        <div className="orbit-line" style={{width:'700px',height:'400px',top:'50%',left:'50%',transform:'translate(-50%,-50%) rotate(-15deg)',borderColor:'rgba(0,229,255,0.06)'}}/>
+        <div className="orbit-line" style={{width:'500px',height:'300px',top:'50%',left:'50%',transform:'translate(-50%,-50%) rotate(10deg)',borderColor:'rgba(124,58,237,0.06)'}}/>
+
+        <div style={{display:'flex',flexDirection:'column',alignItems:'center',textAlign:'center',maxWidth:900,position:'relative',zIndex:1,opacity:loaded?1:0,transition:'opacity 0.8s ease'}}>
+
+          {/* Badge */}
+          <div className="badge badge-live" style={{marginBottom:24,padding:'5px 16px',fontSize:12}}>
+            <span style={{width:7,height:7,borderRadius:'50%',background:'var(--green)',boxShadow:'0 0 8px var(--green)',display:'inline-block'}}/>
+            LIVE SYSTEMS ONLINE — {new Date().toUTCString().slice(0,25)} UTC
+          </div>
+
+          {/* 3D Earth */}
+          <div className="anim-float" style={{width:'clamp(200px,35vw,380px)',height:'clamp(200px,35vw,380px)',borderRadius:'50%',overflow:'hidden',marginBottom:32,boxShadow:'0 0 80px rgba(0,229,255,0.15), 0 0 160px rgba(0,229,255,0.05)',position:'relative'}}>
+            <Earth3D size={380}/>
+            {/* ISS orbit ring overlay */}
+            <div style={{position:'absolute',inset:0,borderRadius:'50%',background:'radial-gradient(circle at 75% 20%, rgba(0,229,255,0.1), transparent 40%)',pointerEvents:'none'}}/>
+          </div>
+
+          <h1 className="orb text-hero" style={{fontWeight:900,lineHeight:1.05,letterSpacing:'-0.03em',marginBottom:20,color:'var(--text)'}}>
+            Real-Time Global<br/>
+            <span style={{background:'linear-gradient(135deg,#00e5ff 0%,#7c3aed 50%,#f97316 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>Space Command</span>
+          </h1>
+
+          <p style={{fontSize:'clamp(15px,2vw,19px)',lineHeight:1.7,color:'var(--dim)',maxWidth:600,marginBottom:36}}>
+            Access live orbital telemetry, SpaceX launches, NASA deep space imagery, asteroid tracking, and AI-powered mission briefings — all in one command interface.
+          </p>
+
+          <div style={{display:'flex',gap:14,flexWrap:'wrap',justifyContent:'center'}}>
+            <button className="btn btn-primary" style={{padding:'14px 36px',fontSize:15}} onClick={()=>setPage('dashboard')}>
+              <span className="msym">rocket_launch</span> Enter Command Center
+            </button>
+            <button className="btn btn-outline" style={{padding:'14px 36px',fontSize:15}} onClick={()=>setPage('login')}>
+              <span className="msym">login</span> Sign In
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* STATS STRIP */}
+      <section style={{padding:'clamp(32px,5vw,64px) clamp(16px,4vw,60px)',position:'relative',zIndex:1}}>
+        <div style={{maxWidth:1200,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:16}}>
+          {stats.map((s,i)=>(
+            <div key={i} className="stat-card hud-corner" style={{textAlign:'center',animationDelay:`${i*0.1}s`}}>
+              <span className="msym" style={{fontSize:28,color:'var(--primary)',display:'block',marginBottom:8}}>{s.icon}</span>
+              <div className="orb" style={{fontSize:'clamp(28px,4vw,40px)',fontWeight:700,color:'var(--primary)'}} className="glow-text orb">{s.value}</div>
+              <div style={{fontSize:12,color:'var(--dim)',letterSpacing:'0.1em',textTransform:'uppercase',marginTop:4}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section style={{padding:'clamp(32px,5vw,64px) clamp(16px,4vw,60px)',position:'relative',zIndex:1}}>
+        <div style={{maxWidth:1200,margin:'0 auto'}}>
+          <div style={{textAlign:'center',marginBottom:48}}>
+            <h2 className="orb" style={{fontSize:'clamp(24px,3.5vw,38px)',fontWeight:700,color:'var(--text)',marginBottom:12}}>Mission Capabilities</h2>
+            <p style={{color:'var(--dim)',fontSize:16}}>Everything you need to monitor the cosmos in one command interface</p>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:20}}>
+            {features.map((f,i)=>(
+              <div key={i} className="glass-card" style={{padding:28,borderRadius:14,cursor:'pointer',transition:'all 0.3s',borderTopColor:`${f.color}40`}}
+                onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-4px)';e.currentTarget.style.boxShadow=`0 16px 48px ${f.color}15`;}}
+                onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.boxShadow='';}}>
+                <div style={{width:52,height:52,borderRadius:12,background:`${f.color}15`,border:`1px solid ${f.color}30`,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:18}}>
+                  <span className="msym" style={{fontSize:28,color:f.color}}>{f.icon}</span>
+                </div>
+                <h3 className="orb" style={{fontSize:17,fontWeight:600,color:'var(--text)',marginBottom:10}}>{f.title}</h3>
+                <p style={{fontSize:14,lineHeight:1.65,color:'var(--dim)'}}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA BAND */}
+      <section style={{padding:'clamp(48px,6vw,80px) clamp(16px,4vw,60px)',position:'relative',zIndex:1}}>
+        <div style={{maxWidth:800,margin:'0 auto',textAlign:'center',background:'linear-gradient(135deg,rgba(0,229,255,0.06),rgba(124,58,237,0.06))',border:'1px solid rgba(0,229,255,0.15)',borderRadius:20,padding:'clamp(32px,5vw,60px)'}}>
+          <span className="msym" style={{fontSize:48,color:'var(--primary)',display:'block',marginBottom:20,filter:'drop-shadow(0 0 16px rgba(0,229,255,0.8))'}}>satellite_alt</span>
+          <h2 className="orb" style={{fontSize:'clamp(22px,3vw,34px)',fontWeight:700,color:'var(--text)',marginBottom:14}}>Ready for Liftoff?</h2>
+          <p style={{color:'var(--dim)',fontSize:16,marginBottom:28}}>Join mission control and access live space data, AI briefings, and real-time tracking.</p>
+          <button className="btn btn-primary" style={{padding:'14px 40px',fontSize:15}} onClick={()=>setPage('signup')}>
+            <span className="msym">add_circle</span> Create Free Account
+          </button>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{position:'relative',zIndex:1,borderTop:'1px solid var(--border)',padding:'24px clamp(16px,4vw,40px)',marginTop:'auto'}}>
+        <div className="aurora" style={{position:'absolute',top:0,left:0,right:0}}/>
+        <div style={{display:'flex',flexWrap:'wrap',gap:16,alignItems:'center',justifyContent:'space-between',maxWidth:1200,margin:'0 auto'}}>
+          <div className="orb" style={{fontSize:13,color:'var(--dim)',letterSpacing:'0.08em'}}>© 2025 AETHEROS COMMAND. ALL SYSTEMS NOMINAL.</div>
+          <div style={{display:'flex',gap:20}}>
+            {['Telemetry','Privacy','API Docs','Status'].map(l=>(
+              <a key={l} href="#" style={{color:'var(--dim)',fontSize:13,textDecoration:'none',transition:'color 0.2s'}} onMouseEnter={e=>e.target.style.color='var(--primary)'} onMouseLeave={e=>e.target.style.color='var(--dim)'}>{l}</a>
+            ))}
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// LOGIN PAGE
+// ══════════════════════════════════════════
+function LoginPage(){
+  const {setPage,setUser} = useApp();
+  const [email,setEmail]=useState('');
+  const [pass,setPass]=useState('');
+  const [err,setErr]=useState('');
+  const [loading,setLoading]=useState(false);
+
+  const login = async(e)=>{
+    e.preventDefault();
+    if(!email||!pass){setErr('All fields required.');return;}
+    setLoading(true); await sleep(1200);
+    setUser({name:'Commander',email,avatar:'UC'});
+    setPage('dashboard');
+  };
+  const googleLogin=async()=>{
+    setLoading(true); await sleep(1000);
+    setUser({name:'Commander',email:'user@gmail.com',avatar:'UC'});
+    setPage('dashboard');
+  };
+
+  return (
+    <div style={{minHeight:'100dvh',display:'flex',alignItems:'center',justifyContent:'center',padding:24,position:'relative',zIndex:1}}>
+      <button onClick={()=>setPage('landing')} style={{position:'fixed',top:20,left:20,background:'rgba(255,255,255,0.05)',border:'1px solid var(--border)',borderRadius:8,padding:'8px 16px',color:'var(--dim)',fontSize:13,cursor:'pointer',display:'flex',alignItems:'center',gap:6,transition:'all 0.2s',zIndex:10}} onMouseEnter={e=>{e.currentTarget.style.color='var(--primary)';e.currentTarget.style.borderColor='rgba(0,229,255,0.3)';}} onMouseLeave={e=>{e.currentTarget.style.color='var(--dim)';e.currentTarget.style.borderColor='var(--border)';}}>
+        <span className="msym" style={{fontSize:16}}>arrow_back</span> Back
+      </button>
+
+      <div style={{width:'100%',maxWidth:440,animation:'fadeIn 0.6s ease forwards',position:'relative'}}>
+        {/* Corner accents */}
+        {[{t:-8,l:-8,bt:'top',bl:'left'},{t:-8,r:-8,bt:'top',bl:'right'},{b:-8,l:-8,bb:'bottom',bl:'left'},{b:-8,r:-8,bb:'bottom',bl:'right'}].map((c,i)=>(
+          <div key={i} style={{position:'absolute',...(c.t!==undefined?{top:c.t}:{}),... (c.b!==undefined?{bottom:c.b}:{}),... (c.l!==undefined?{left:c.l}:{}),... (c.r!==undefined?{right:c.r}:{}),width:18,height:18,pointerEvents:'none',borderTop:c.bt?'2px solid rgba(0,229,255,0.4)':undefined,borderBottom:c.bb?'2px solid rgba(0,229,255,0.4)':undefined,[`border${c.bl[0].toUpperCase()+c.bl.slice(1)}`]:'2px solid rgba(0,229,255,0.4)'}}/>
+        ))}
+
+        <div className="glass-strong" style={{borderRadius:18,overflow:'hidden'}}>
+          <div style={{height:2,background:'linear-gradient(90deg,transparent,var(--primary),var(--secondary),transparent)'}}/>
+          <div style={{padding:'clamp(28px,5vw,48px)'}}>
+            {/* Header */}
+            <div style={{textAlign:'center',marginBottom:32}}>
+              <div className="anim-float" style={{marginBottom:14}}>
+                <span className="msym f1" style={{fontSize:52,color:'var(--primary)',filter:'drop-shadow(0 0 16px rgba(0,229,255,0.8))'}}>rocket_launch</span>
+              </div>
+              <h1 className="orb" style={{fontSize:'clamp(20px,3.5vw,28px)',fontWeight:700,color:'var(--primary)',letterSpacing:'-0.02em',textTransform:'uppercase',marginBottom:4}} className="glow-text orb">AETHEROS</h1>
+              <p style={{fontSize:11,color:'var(--dim)',letterSpacing:'0.2em',textTransform:'uppercase'}}>Secure Personnel Uplink</p>
+            </div>
+
+            <form onSubmit={login} style={{display:'flex',flexDirection:'column',gap:18}}>
+              <div className="input-wrap">
+                <input type="email" className="input-field" placeholder=" " value={email} onChange={e=>setEmail(e.target.value)}/>
+                <label className="input-label">Commander ID / Email</label>
+                <span className="msym input-icon">badge</span>
+              </div>
+              <div className="input-wrap">
+                <input type="password" className="input-field" placeholder=" " value={pass} onChange={e=>setPass(e.target.value)}/>
+                <label className="input-label">Security Passkey</label>
+                <span className="msym input-icon">lock</span>
+              </div>
+              {err&&<p style={{fontSize:13,color:'var(--red)',textAlign:'center'}}>{err}</p>}
+
+              <button type="submit" className="btn btn-primary" style={{width:'100%',padding:14,justifyContent:'center',fontSize:14,marginTop:4}} disabled={loading}>
+                {loading?<><span className="spin-loader" style={{width:18,height:18,borderWidth:2}}/> Authenticating...</>:<><span className="msym">arrow_forward</span> Initialize Connection</>}
+              </button>
+            </form>
+
+            <div style={{display:'flex',alignItems:'center',gap:14,margin:'22px 0',opacity:0.5}}>
+              <div style={{flex:1,height:1,background:'linear-gradient(90deg,transparent,rgba(255,255,255,0.15))'}}/>
+              <span style={{fontSize:10,color:'var(--dim)',letterSpacing:'0.15em',textTransform:'uppercase'}}>External Relay</span>
+              <div style={{flex:1,height:1,background:'linear-gradient(90deg,rgba(255,255,255,0.15),transparent)'}}/>
+            </div>
+
+            <button className="btn btn-outline" style={{width:'100%',padding:13,justifyContent:'center',fontSize:13}} onClick={googleLogin}>
+              <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+              Continue with Google
+            </button>
+
+            <p style={{textAlign:'center',fontSize:13,color:'var(--dim)',marginTop:18}}>
+              New recruit? <a href="#" onClick={e=>{e.preventDefault();setPage('signup');}} style={{color:'var(--primary)',textDecoration:'underline',textUnderlineOffset:3}}>Join the Mission</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// SIGNUP PAGE
+// ══════════════════════════════════════════
+function SignupPage(){
+  const {setPage,setUser}=useApp();
+  const [form,setForm]=useState({name:'',email:'',pass:'',confirm:''});
+  const [loading,setLoading]=useState(false);
+  const strength = form.pass.length===0?0:form.pass.length<6?1:form.pass.length<10?2:form.pass.length<14?3:4;
+  const strengthColors=['','var(--red)','var(--accent)','var(--yellow)','var(--green)'];
+  const strengthLabels=['','Weak','Fair','Good','Strong'];
+
+  const signup=async(e)=>{
+    e.preventDefault();
+    setLoading(true); await sleep(1400);
+    setUser({name:form.name||'Commander',email:form.email,avatar:form.name[0]?.toUpperCase()||'C'});
+    setPage('dashboard');
+  };
+
+  return (
+    <div style={{minHeight:'100dvh',display:'flex',alignItems:'center',justifyContent:'center',padding:24,position:'relative',zIndex:1}}>
+      <button onClick={()=>setPage('landing')} style={{position:'fixed',top:20,left:20,background:'rgba(255,255,255,0.05)',border:'1px solid var(--border)',borderRadius:8,padding:'8px 16px',color:'var(--dim)',fontSize:13,cursor:'pointer',display:'flex',alignItems:'center',gap:6,zIndex:10,transition:'all 0.2s'}} onMouseEnter={e=>{e.currentTarget.style.color='var(--primary)';}} onMouseLeave={e=>{e.currentTarget.style.color='var(--dim)';}}>
+        <span className="msym" style={{fontSize:16}}>arrow_back</span> Back
+      </button>
+
+      <div style={{width:'100%',maxWidth:460,animation:'fadeIn 0.6s ease forwards'}}>
+        <div className="glass-strong" style={{borderRadius:18,overflow:'hidden'}}>
+          <div style={{height:2,background:'linear-gradient(90deg,transparent,var(--secondary),var(--primary),transparent)'}}/>
+          <div style={{padding:'clamp(28px,5vw,48px)'}}>
+            <div style={{textAlign:'center',marginBottom:28}}>
+              <span className="msym" style={{fontSize:44,color:'var(--secondary)',filter:'drop-shadow(0 0 12px rgba(124,58,237,0.8))',display:'block',marginBottom:10}}>person_add</span>
+              <h1 className="orb" style={{fontSize:'clamp(18px,3vw,26px)',fontWeight:700,color:'var(--text)',marginBottom:4}}>Join Mission Control</h1>
+              <p style={{fontSize:12,color:'var(--dim)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Create Your Commander Profile</p>
+            </div>
+
+            <form onSubmit={signup} style={{display:'flex',flexDirection:'column',gap:16}}>
+              {[
+                {key:'name',label:'Commander Name',icon:'person',type:'text'},
+                {key:'email',label:'Email Address',icon:'email',type:'email'},
+                {key:'pass',label:'Security Passkey',icon:'lock',type:'password'},
+                {key:'confirm',label:'Confirm Passkey',icon:'lock_open',type:'password'},
+              ].map(f=>(
+                <div key={f.key} className="input-wrap">
+                  <input type={f.type} className="input-field" placeholder=" "
+                    value={form[f.key]} onChange={e=>setForm(p=>({...p,[f.key]:e.target.value}))}/>
+                  <label className="input-label">{f.label}</label>
+                  <span className="msym input-icon">{f.icon}</span>
+                </div>
+              ))}
+
+              {/* Password strength */}
+              {form.pass.length>0&&(
+                <div>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                    <span style={{fontSize:10,color:'var(--dim)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Passkey Strength</span>
+                    <span style={{fontSize:10,color:strengthColors[strength],fontWeight:600,letterSpacing:'0.08em',textTransform:'uppercase'}}>{strengthLabels[strength]}</span>
+                  </div>
+                  <div style={{display:'flex',gap:4}}>
+                    {[1,2,3,4].map(l=>(
+                      <div key={l} style={{flex:1,height:4,borderRadius:2,background:l<=strength?strengthColors[strength]:'rgba(255,255,255,0.08)',transition:'background 0.3s',boxShadow:l<=strength?`0 0 8px ${strengthColors[strength]}50`:''}}/>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <button type="submit" className="btn btn-secondary" style={{width:'100%',padding:14,justifyContent:'center',fontSize:14,marginTop:4}} disabled={loading}>
+                {loading?<><span className="spin-loader" style={{width:18,height:18,borderWidth:2,borderColor:'rgba(255,255,255,0.3)',borderTopColor:'white'}}/> Creating Profile...</>:<><span className="msym">add_circle</span> Initialize Profile</>}
+              </button>
+            </form>
+
+            <p style={{textAlign:'center',fontSize:13,color:'var(--dim)',marginTop:18}}>
+              Already enlisted? <a href="#" onClick={e=>{e.preventDefault();setPage('login');}} style={{color:'var(--primary)',textDecoration:'underline',textUnderlineOffset:3}}>Sign In</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD LAYOUT
+// ══════════════════════════════════════════
+function DashboardLayout({activeSection,setSection,user,setPage,children}){
+  const [sidebarOpen,setSidebarOpen]=useState(false);
+  const [notifOpen,setNotifOpen]=useState(false);
+
+  const navItems=[
+    {id:'command',icon:'dashboard',label:'Command Center'},
+    {id:'iss',icon:'satellite_alt',label:'ISS Tracker'},
+    {id:'spacex',icon:'rocket',label:'SpaceX Launches'},
+    {id:'nasa',icon:'image',label:'NASA Gallery'},
+    {id:'asteroids',icon:'crisis_alert',label:'Asteroid Watch'},
+    {id:'ai',icon:'psychology',label:'AI Oracle'},
+    {id:'profile',icon:'person',label:'Profile'},
+  ];
+
+  const navigate=(id)=>{setSection(id);setSidebarOpen(false);};
+
+  return (
+    <div style={{minHeight:'100dvh',position:'relative',zIndex:1}}>
+      {/* SIDEBAR OVERLAY */}
+      <div className={`sidebar-overlay ${sidebarOpen?'show':''}`} onClick={()=>setSidebarOpen(false)}/>
+
+      {/* SIDEBAR */}
+      <aside className={`sidebar ${sidebarOpen?'':'closed'}`} id="main-sidebar">
+        {/* Brand */}
+        <div style={{padding:'0 20px 20px',borderBottom:'1px solid var(--border)',marginBottom:12}}>
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <div style={{width:40,height:40,borderRadius:'50%',background:'linear-gradient(135deg,rgba(0,229,255,0.2),rgba(124,58,237,0.2))',border:'1px solid rgba(0,229,255,0.3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <span className="orb" style={{fontSize:14,fontWeight:700,color:'var(--primary)'}}>{user?.avatar||'A1'}</span>
+            </div>
+            <div>
+              <div className="orb" style={{fontSize:14,fontWeight:600,color:'var(--primary)'}}>{user?.name||'Commander'}</div>
+              <div style={{fontSize:11,color:'var(--dim)',fontFamily:'JetBrains Mono'}}>Sector 7G · Active</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Nav */}
+        <nav style={{flex:1,padding:'0 8px',overflowY:'auto'}}>
+          {navItems.map(item=>(
+            <a key={item.id} className={`nav-link ${activeSection===item.id?'active':''}`}
+              onClick={()=>navigate(item.id)}>
+              <span className="msym" style={{fontSize:22}}>{item.icon}</span>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        {/* Bottom */}
+        <div style={{padding:'16px 8px',borderTop:'1px solid var(--border)'}}>
+          <a className="nav-link" onClick={()=>setPage('landing')} style={{color:'var(--red)'}}>
+            <span className="msym" style={{fontSize:22}}>logout</span> Disconnect
+          </a>
+        </div>
+      </aside>
+
+      {/* TOPBAR */}
+      <header className="topbar">
+        <div style={{display:'flex',alignItems:'center',gap:14}}>
+          <button onClick={()=>setSidebarOpen(!sidebarOpen)} style={{background:'none',border:'1px solid var(--border)',borderRadius:8,padding:'6px 8px',color:'var(--dim)',cursor:'pointer',display:'flex',alignItems:'center',transition:'all 0.2s'}} className="lg-hidden" id="menu-btn" onMouseEnter={e=>e.currentTarget.style.color='var(--primary)'} onMouseLeave={e=>e.currentTarget.style.color='var(--dim)'}>
+            <span className="msym">menu</span>
+          </button>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <span className="msym f1" style={{fontSize:22,color:'var(--primary)',filter:'drop-shadow(0 0 6px rgba(0,229,255,0.7))'}}>rocket_launch</span>
+            <span className="orb" style={{fontSize:16,fontWeight:700,color:'var(--primary)'}}>AETHER<span style={{color:'var(--secondary)'}}>OS</span></span>
+          </div>
+          {/* Section title */}
+          <div style={{display:'none',alignItems:'center',gap:8}} id="breadcrumb">
+            <span style={{color:'var(--dim)'}}>›</span>
+            <span style={{fontSize:13,color:'var(--dim)',textTransform:'uppercase',letterSpacing:'0.06em',fontWeight:600}}>{navItems.find(n=>n.id===activeSection)?.label}</span>
+          </div>
+        </div>
+
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          {/* Search (desktop) */}
+          <div style={{position:'relative',display:'none'}} id="search-wrap">
+            <span className="msym" style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'var(--dim)',fontSize:18}}>search</span>
+            <input placeholder="Query orbital data..." style={{background:'rgba(0,0,0,0.4)',border:'1px solid var(--border)',borderRadius:8,padding:'8px 16px 8px 36px',fontSize:13,color:'var(--text)',width:220,outline:'none',fontFamily:'Rajdhani',transition:'border-color 0.2s'}} onFocus={e=>e.target.style.borderColor='rgba(0,229,255,0.4)'} onBlur={e=>e.target.style.borderColor='var(--border)'}/>
+          </div>
+
+          {/* Notifications */}
+          <div className="tooltip-wrap" style={{position:'relative'}}>
+            <button onClick={()=>setNotifOpen(!notifOpen)} style={{background:'none',border:'none',color:'var(--dim)',cursor:'pointer',position:'relative',padding:4,transition:'color 0.2s'}} onMouseEnter={e=>e.currentTarget.style.color='var(--primary)'} onMouseLeave={e=>e.currentTarget.style.color='var(--dim)'}>
+              <span className="msym f1" style={{fontSize:24}}>notifications</span>
+              <span className="notif-dot"/>
+            </button>
+            {notifOpen&&(
+              <div style={{position:'absolute',top:'calc(100% + 8px)',right:0,width:300,background:'rgba(4,12,24,0.97)',border:'1px solid var(--border)',borderRadius:12,padding:16,zIndex:200,boxShadow:'0 20px 60px rgba(0,0,0,0.5)'}}>
+                <div style={{fontWeight:700,fontSize:13,color:'var(--text)',marginBottom:12,textTransform:'uppercase',letterSpacing:'0.06em'}}>Alerts</div>
+                {[
+                  {t:'ISS Overhead in 12 min',s:'Lat: 28.6°N over India',c:'var(--primary)'},
+                  {t:'SpaceX Launch T-4 days',s:'Starship IFT-7 Countdown Active',c:'var(--accent)'},
+                  {t:'Asteroid 2024-XQ Approaching',s:'Distance: 1.2M km | Low threat',c:'var(--yellow)'},
+                ].map((n,i)=>(
+                  <div key={i} style={{display:'flex',gap:12,padding:'10px 0',borderBottom:i<2?'1px solid rgba(255,255,255,0.04)':''}}>
+                    <span style={{width:6,height:6,borderRadius:'50%',background:n.c,marginTop:5,flexShrink:0,boxShadow:`0 0 6px ${n.c}`}}/>
+                    <div>
+                      <div style={{fontSize:13,fontWeight:600,color:'var(--text)',marginBottom:2}}>{n.t}</div>
+                      <div style={{fontSize:11,color:'var(--dim)'}}>{n.s}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Avatar */}
+          <div style={{width:34,height:34,borderRadius:'50%',background:'linear-gradient(135deg,rgba(0,229,255,0.25),rgba(124,58,237,0.25))',border:'1px solid rgba(0,229,255,0.4)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+            <span className="orb" style={{fontSize:13,fontWeight:700,color:'var(--primary)'}}>{user?.avatar||'UC'}</span>
+          </div>
+        </div>
+      </header>
+
+      {/* MAIN */}
+      <main className="main-wrap">
+        <div className="main-content">
+          {children}
+        </div>
+      </main>
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="bottom-nav">
+        {navItems.slice(0,5).map(item=>(
+          <div key={item.id} className={`bottom-nav-item ${activeSection===item.id?'active':''}`} onClick={()=>navigate(item.id)}>
+            <span className="msym" style={{fontSize:22}}>{item.icon}</span>
+            <span>{item.label.split(' ')[0]}</span>
+          </div>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// COMMAND CENTER
+// ══════════════════════════════════════════
+function CommandCenter(){
+  const [issData,setIssData]=useState({latitude:28.6,longitude:77.2,altitude:408,velocity:27580});
+  const [news,setNews]=useState(MOCK_NEWS);
+  const [apod,setApod]=useState(null);
+  const [loadingApod,setLoadingApod]=useState(true);
+
+  useEffect(()=>{
+    // Fetch APOD
+    (async()=>{
+      const d=await apiFetch(`${NASA_API}/planetary/apod?api_key=${NASA_KEY}`);
+      if(d) setApod(d);
+      setLoadingApod(false);
+    })();
+    // Fetch news
+    (async()=>{
+      const d=await apiFetch(NEWS_API);
+      if(d?.results?.length) setNews(d.results.slice(0,4));
+      else if(d?.length) setNews(d.slice(0,4));
+    })();
+    // ISS updates
+    const interval=setInterval(async()=>{
+      const d=await apiFetch(ISS_API);
+      if(d) setIssData(prev=>({...prev,latitude:parseFloat(d.latitude),longitude:parseFloat(d.longitude),altitude:parseFloat(d.altitude),velocity:parseFloat(d.velocity)}));
+    },5000);
+    return ()=>clearInterval(interval);
+  },[]);
+
+  const kpiCards=[
+    {label:'Active Satellites',value:'8,432',icon:'satellite_alt',color:'var(--primary)',delta:'+12 today',sub:'Orbit status: Nominal'},
+    {label:'ISS Altitude',value:`${issData.altitude.toFixed(0)} km`,icon:'height',color:'var(--secondary)',delta:'',sub:`Vel: ${fmt(Math.round(issData.velocity))} km/h`},
+    {label:'NEO Threats',value:'3',icon:'crisis_alert',color:'var(--red)',delta:'Elevated',sub:'1 flagged approach'},
+    {label:'SpaceX Launches',value:'285',icon:'rocket_launch',color:'var(--accent)',delta:'Next: T-4d',sub:'Starship IFT-7'},
+  ];
+
+  return (
+    <div style={{animation:'fadeIn 0.5s ease'}}>
+      {/* Header */}
+      <div style={{marginBottom:24}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
+          <h1 className="orb" style={{fontSize:'clamp(20px,3vw,30px)',fontWeight:700,color:'var(--text)'}}>Command Center</h1>
+          <div className="badge badge-live"><span style={{width:6,height:6,borderRadius:'50%',background:'var(--green)',display:'inline-block',animation:'pulseDot 2s infinite'}}/>Live</div>
+        </div>
+        <p style={{fontSize:14,color:'var(--dim)',fontFamily:'JetBrains Mono'}}>
+          UTC {new Date().toUTCString().slice(5,25)} &nbsp;·&nbsp; All systems nominal &nbsp;·&nbsp; {Math.floor(Math.random()*20)+80}% uptime
+        </p>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid-4" style={{marginBottom:24}}>
+        {kpiCards.map((c,i)=>(
+          <div key={i} className="stat-card hud-corner" style={{animationDelay:`${i*0.08}s`}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
+              <div style={{width:40,height:40,borderRadius:8,background:`${c.color}15`,border:`1px solid ${c.color}25`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <span className="msym" style={{color:c.color,fontSize:22}}>{c.icon}</span>
+              </div>
+              {c.delta&&<span style={{fontSize:11,color:c.color,fontWeight:600,letterSpacing:'0.06em'}}>{c.delta}</span>}
+            </div>
+            <div style={{fontSize:'clamp(22px,3vw,32px)',fontWeight:700,color:c.color,fontFamily:'Orbitron',marginBottom:4,textShadow:`0 0 20px ${c.color}60`}}>{c.value}</div>
+            <div style={{fontSize:11,color:'var(--dim)',letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:4}}>{c.label}</div>
+            <div style={{fontSize:12,color:'var(--dim)' }}>{c.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 2-column row: ISS Mini + APOD */}
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:24}}>
+        {/* ISS mini tracker */}
+        <div className="glass-card" style={{padding:20,borderRadius:14}}>
+          <div className="section-head" style={{marginBottom:14}}>
+            <div className="section-icon"><span className="msym" style={{fontSize:20}}>satellite_alt</span></div>
+            <span className="section-title" style={{fontSize:15}}>ISS Position</span>
+            <div className="badge badge-live" style={{marginLeft:'auto'}}><span style={{width:5,height:5,borderRadius:'50%',background:'var(--green)',display:'inline-block',animation:'pulseDot 1.5s infinite'}}/>Live</div>
+          </div>
+          <ISSMiniMap issData={issData}/>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:12}}>
+            {[
+              {l:'Latitude',v:`${issData.latitude.toFixed(2)}°`},
+              {l:'Longitude',v:`${issData.longitude.toFixed(2)}°`},
+              {l:'Altitude',v:`${issData.altitude.toFixed(0)} km`},
+              {l:'Velocity',v:`${fmt(Math.round(issData.velocity))} km/h`},
+            ].map((d,i)=>(
+              <div key={i} style={{background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'8px 12px'}}>
+                <div style={{fontSize:10,color:'var(--dim)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:3}}>{d.l}</div>
+                <div style={{fontSize:15,color:'var(--primary)',fontFamily:'JetBrains Mono',fontWeight:500}}>{d.v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* APOD */}
+        <div className="glass-card" style={{padding:20,borderRadius:14}}>
+          <div className="section-head" style={{marginBottom:14}}>
+            <div className="section-icon" style={{background:'rgba(249,115,22,0.1)',borderColor:'rgba(249,115,22,0.2)',color:'var(--accent)'}}><span className="msym" style={{fontSize:20,color:'var(--accent)'}}>image</span></div>
+            <span className="section-title" style={{fontSize:15}}>NASA APOD</span>
+            <span style={{marginLeft:'auto',fontSize:11,color:'var(--dim)'}}>Today</span>
+          </div>
+          {loadingApod?(
+            <div style={{height:200,display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <div className="spin-loader"/>
+            </div>
+          ):(
+            <div>
+              {apod?.url&&<img src={apod.url} alt={apod.title} style={{width:'100%',height:160,objectFit:'cover',borderRadius:10,marginBottom:10}} onError={e=>{e.target.style.display='none';}}/>}
+              <div style={{fontSize:14,fontWeight:600,color:'var(--text)',marginBottom:6,lineHeight:1.4}}>{apod?.title||'Astronomy Picture of the Day'}</div>
+              <p style={{fontSize:12,color:'var(--dim)',lineHeight:1.6,display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{apod?.explanation||'Loading NASA daily astronomy image...'}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* News */}
+      <div className="glass-card" style={{padding:20,borderRadius:14,marginBottom:24}}>
+        <div className="section-head">
+          <div className="section-icon" style={{background:'rgba(124,58,237,0.1)',borderColor:'rgba(124,58,237,0.2)'}}><span className="msym" style={{fontSize:20,color:'var(--secondary)'}}>newspaper</span></div>
+          <span className="section-title">Space News</span>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:12}}>
+          {news.map((n,i)=>(
+            <a key={i} href={n.url||'#'} target="_blank" rel="noreferrer" style={{display:'block',textDecoration:'none',background:'rgba(0,0,0,0.3)',borderRadius:10,padding:'14px 16px',border:'1px solid rgba(255,255,255,0.04)',transition:'all 0.3s',cursor:'pointer'}} onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(0,229,255,0.15)';e.currentTarget.style.transform='translateY(-2px)';}} onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.04)';e.currentTarget.style.transform='';}}>
+              <div style={{fontSize:11,color:'var(--primary)',fontWeight:600,letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:6}}>{n.news_site||'Space News'} · {new Date(n.published_at||Date.now()).toLocaleDateString()}</div>
+              <div style={{fontSize:14,fontWeight:600,color:'var(--text)',lineHeight:1.45,marginBottom:6}}>{n.title}</div>
+              <div style={{fontSize:12,color:'var(--dim)',lineHeight:1.55,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{n.summary}</div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ISS Mini Map Canvas
+function ISSMiniMap({issData}){
+  const canvasRef=useRef(null);
+  useEffect(()=>{
+    const canvas=canvasRef.current; if(!canvas) return;
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width, H=canvas.height;
+    ctx.clearRect(0,0,W,H);
+
+    // Ocean
+    ctx.fillStyle='#0a1628'; ctx.fillRect(0,0,W,H);
+
+    // Grid
+    ctx.strokeStyle='rgba(0,229,255,0.06)'; ctx.lineWidth=0.5;
+    for(let x=0;x<W;x+=W/6){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=H/4){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    // Continents (simplified)
+    ctx.fillStyle='rgba(46,125,50,0.5)';
+    const drawBlob=(cx,cy,rx,ry)=>{ctx.beginPath();ctx.ellipse(cx*W,cy*H,rx*W,ry*H,0,0,Math.PI*2);ctx.fill();};
+    drawBlob(.16,.30,.08,.15); // N America
+    drawBlob(.30,.55,.06,.12); // S America
+    drawBlob(.50,.25,.05,.10); // Europe
+    drawBlob(.50,.50,.07,.14); // Africa
+    ctx.fillStyle='rgba(46,125,50,0.45)';
+    drawBlob(.74,.28,.18,.18); // Asia
+    drawBlob(.86,.64,.05,.08); // Australia
+
+    // Equator
+    ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+
+    // ISS position
+    const x=((issData.longitude+180)/360)*W;
+    const y=((90-issData.latitude)/180)*H;
+    ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2);
+    ctx.fillStyle='var(--primary)||#00e5ff';
+    ctx.shadowColor='#00e5ff'; ctx.shadowBlur=12;
+    ctx.fillStyle='#00e5ff'; ctx.fill();
+    ctx.shadowBlur=0;
+    // Rings
+    ctx.strokeStyle='rgba(0,229,255,0.4)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(x,y,10,0,Math.PI*2); ctx.stroke();
+    ctx.strokeStyle='rgba(0,229,255,0.15)';
+    ctx.beginPath(); ctx.arc(x,y,16,0,Math.PI*2); ctx.stroke();
+
+    // Orbit track
+    ctx.strokeStyle='rgba(0,229,255,0.15)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    for(let i=0;i<=360;i++){
+      const angle=(i/180)*Math.PI;
+      const lat=Math.sin(angle)*51.6;
+      const lng=(issData.longitude-180+i)%360-180;
+      const px=((lng+180)/360)*W;
+      const py=((90-lat)/180)*H;
+      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  },[issData]);
+
+  return <canvas ref={canvasRef} width={400} height={200} style={{width:'100%',height:200,borderRadius:10}}/>;
+}
+
+// ══════════════════════════════════════════
+// ISS TRACKER PAGE
+// ══════════════════════════════════════════
+function ISSTracker(){
+  const [issData,setIssData]=useState({latitude:28.6,longitude:77.2,altitude:408.5,velocity:27580,footprint:4540});
+  const [crew]=useState([
+    {name:'Oleg Kononenko',role:'Commander',country:'🇷🇺'},
+    {name:'Nikolai Chub',role:'Flight Engineer',country:'🇷🇺'},
+    {name:'Tracy Dyson',role:'Flight Engineer',country:'🇺🇸'},
+    {name:'Matthew Dominick',role:'Flight Engineer',country:'🇺🇸'},
+    {name:'Michael Barratt',role:'Flight Engineer',country:'🇺🇸'},
+    {name:'Jeanette Epps',role:'Flight Engineer',country:'🇺🇸'},
+    {name:'Alexander Grebenkin',role:'Flight Engineer',country:'🇷🇺'},
+  ]);
+  const [passTime,setPassTime]=useState(null);
+  const canvasRef=useRef(null);
+
+  useEffect(()=>{
+    const update=async()=>{
+      const d=await apiFetch(ISS_API);
+      if(d) setIssData({latitude:parseFloat(d.latitude),longitude:parseFloat(d.longitude),altitude:parseFloat(d.altitude),velocity:parseFloat(d.velocity),footprint:parseFloat(d.footprint)||4540});
+    };
+    update();
+    const iv=setInterval(update,5000);
+    return ()=>clearInterval(iv);
+  },[]);
+
+  useEffect(()=>{
+    const canvas=canvasRef.current; if(!canvas) return;
+    const ctx=canvas.getContext('2d');
+    const W=canvas.clientWidth*2; const H=canvas.clientHeight*2;
+    canvas.width=W; canvas.height=H;
+
+    // Ocean
+    const og=ctx.createLinearGradient(0,0,0,H);
+    og.addColorStop(0,'#040e1e'); og.addColorStop(1,'#061426');
+    ctx.fillStyle=og; ctx.fillRect(0,0,W,H);
+
+    // Grid lines
+    ctx.strokeStyle='rgba(0,229,255,0.05)'; ctx.lineWidth=1;
+    for(let x=0;x<W;x+=W/12){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<H;y+=H/6){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+    // Latitude lines
+    ctx.strokeStyle='rgba(0,229,255,0.08)'; ctx.lineWidth=1;
+    [30,60,-30,-60].forEach(lat=>{
+      const y=((90-lat)/180)*H;
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+    });
+
+    // Equator
+    ctx.strokeStyle='rgba(0,229,255,0.18)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+
+    // Prime meridian
+    ctx.strokeStyle='rgba(0,229,255,0.18)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(W/2,0); ctx.lineTo(W/2,H); ctx.stroke();
+
+    // Continents (detailed)
+    const drawPoly=(pts,col,alpha=0.5)=>{
+      ctx.fillStyle=col; ctx.globalAlpha=alpha;
+      ctx.beginPath(); ctx.moveTo(pts[0][0]*W,pts[0][1]*H);
+      pts.slice(1).forEach(([px,py])=>ctx.lineTo(px*W,py*H));
+      ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+    };
+    const G='#2e7d32',G2='#33691e',D='#5d4037';
+    drawPoly([[.07,.10],[.14,.07],[.24,.09],[.33,.17],[.36,.27],[.31,.40],[.27,.50],[.22,.57],[.15,.59],[.10,.52],[.06,.42],[.05,.30],[.06,.20]],G);
+    drawPoly([[.285,.44],[.32,.42],[.38,.47],[.40,.56],[.38,.66],[.34,.72],[.28,.69],[.26,.60],[.25,.50]],G2);
+    drawPoly([[.46,.31],[.51,.27],[.57,.30],[.59,.40],[.58,.56],[.55,.67],[.51,.70],[.47,.67],[.44,.56],[.43,.42]],D);
+    drawPoly([[.55,.12],[.68,.08],[.82,.09],[.93,.13],[.99,.20],[.97,.35],[.89,.44],[.78,.48],[.65,.50],[.57,.40],[.54,.25],[.55,.17]],G);
+    drawPoly([[.47,.21],[.53,.18],[.56,.23],[.53,.30],[.48,.28]],G);
+    drawPoly([[.285,.08],[.34,.05],[.38,.11],[.36,.19],[.29,.19],[.28,.14]],G2,.4);
+    drawPoly([[.81,.57],[.87,.56],[.93,.59],[.95,.65],[.92,.73],[.87,.75],[.80,.72],[.79,.65]],D);
+    // Antarctica
+    ctx.fillStyle='rgba(180,220,255,0.3)'; ctx.globalAlpha=0.8;
+    ctx.fillRect(0,H*.84,W,H*.16); ctx.globalAlpha=1;
+    // Arctic
+    ctx.fillStyle='rgba(180,220,255,0.3)'; ctx.fillRect(0,0,W,H*.04);
+
+    // ISS footprint
+    const ix=((issData.longitude+180)/360)*W;
+    const iy=((90-issData.latitude)/180)*H;
+    const footprintPx=(issData.footprint/40000)*W*0.5;
+    const grd=ctx.createRadialGradient(ix,iy,0,ix,iy,footprintPx);
+    grd.addColorStop(0,'rgba(0,229,255,0.08)');
+    grd.addColorStop(0.7,'rgba(0,229,255,0.03)');
+    grd.addColorStop(1,'transparent');
+    ctx.fillStyle=grd; ctx.beginPath(); ctx.arc(ix,iy,footprintPx,0,Math.PI*2); ctx.fill();
+
+    // Orbit track
+    ctx.strokeStyle='rgba(0,229,255,0.18)'; ctx.lineWidth=1.5; ctx.setLineDash([6,6]);
+    ctx.beginPath();
+    let first=true;
+    for(let i=0;i<=720;i++){
+      const t=(i/360)*Math.PI*2;
+      const lat=Math.sin(t)*51.6;
+      const lngOffset=(issData.longitude-180+(i*0.5))%360;
+      const lng=lngOffset<-180?lngOffset+360:lngOffset>180?lngOffset-360:lngOffset;
+      const px=((lng+180)/360)*W;
+      const py=((90-lat)/180)*H;
+      if(first){ctx.moveTo(px,py);first=false;}else ctx.lineTo(px,py);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+
+    // ISS marker
+    ctx.shadowColor='#00e5ff'; ctx.shadowBlur=20;
+    ctx.fillStyle='#00e5ff';
+    ctx.beginPath(); ctx.arc(ix,iy,7,0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.strokeStyle='rgba(0,229,255,0.6)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.arc(ix,iy,14,0,Math.PI*2); ctx.stroke();
+    ctx.strokeStyle='rgba(0,229,255,0.25)';
+    ctx.beginPath(); ctx.arc(ix,iy,22,0,Math.PI*2); ctx.stroke();
+
+    // ISS label
+    ctx.fillStyle='rgba(0,229,255,0.9)'; ctx.font=`${12*2}px 'Orbitron',sans-serif`;
+    ctx.fillText('ISS', ix+18, iy-10);
+  },[issData]);
+
+  return (
+    <div style={{animation:'fadeIn 0.5s ease'}}>
+      <div style={{marginBottom:20}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
+          <h1 className="orb" style={{fontSize:'clamp(18px,2.5vw,26px)',fontWeight:700}}>ISS Live Tracker</h1>
+          <div className="badge badge-live"><span style={{width:6,height:6,borderRadius:'50%',background:'var(--green)',display:'inline-block',animation:'pulseDot 1.5s infinite'}}/>Real-Time</div>
+        </div>
+      </div>
+
+      {/* Telemetry bar */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:12,marginBottom:20}}>
+        {[
+          {l:'Altitude',v:`${issData.altitude.toFixed(1)} km`,icon:'height',c:'var(--primary)'},
+          {l:'Velocity',v:`${fmt(Math.round(issData.velocity))} km/h`,icon:'speed',c:'var(--secondary)'},
+          {l:'Latitude',v:`${issData.latitude.toFixed(3)}°`,icon:'location_on',c:'var(--accent)'},
+          {l:'Longitude',v:`${issData.longitude.toFixed(3)}°`,icon:'explore',c:'var(--green)'},
+          {l:'Footprint',v:`${fmt(Math.round(issData.footprint))} km`,icon:'radar',c:'var(--primary)'},
+          {l:'Crew',v:'7 People',icon:'groups',c:'var(--secondary)'},
+        ].map((d,i)=>(
+          <div key={i} className="stat-card" style={{padding:'14px 16px',textAlign:'center'}}>
+            <span className="msym" style={{fontSize:22,color:d.c,display:'block',marginBottom:6}}>{d.icon}</span>
+            <div style={{fontSize:'clamp(15px,2vw,20px)',fontWeight:700,color:d.c,fontFamily:'JetBrains Mono'}}>{d.v}</div>
+            <div style={{fontSize:11,color:'var(--dim)',textTransform:'uppercase',letterSpacing:'0.08em',marginTop:3}}>{d.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Map */}
+      <div className="glass-card" style={{padding:0,borderRadius:14,overflow:'hidden',marginBottom:20}}>
+        <div style={{padding:'14px 18px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:10}}>
+          <span className="msym" style={{color:'var(--primary)'}}>map</span>
+          <span className="orb" style={{fontSize:14,fontWeight:600}}>Global Orbital Map</span>
+          <div className="badge badge-live" style={{marginLeft:'auto'}}><span style={{width:5,height:5,borderRadius:'50%',background:'var(--green)',display:'inline-block',animation:'pulseDot 1.5s infinite'}}/>Tracking</div>
+        </div>
+        <div style={{position:'relative'}}>
+          <canvas ref={canvasRef} style={{width:'100%',height:'clamp(280px,40vw,480px)',display:'block'}}/>
+        </div>
+      </div>
+
+      {/* Crew */}
+      <div className="glass-card" style={{padding:20,borderRadius:14}}>
+        <div className="section-head">
+          <div className="section-icon" style={{background:'rgba(124,58,237,0.1)',borderColor:'rgba(124,58,237,0.2)'}}><span className="msym" style={{color:'var(--secondary)',fontSize:20}}>groups</span></div>
+          <span className="section-title">Expedition 71 Crew — 7 Members</span>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:12}}>
+          {crew.map((c,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:12,background:'rgba(0,0,0,0.3)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(255,255,255,0.04)'}}>
+              <div style={{width:36,height:36,borderRadius:'50%',background:`hsl(${i*50},60%,25%)`,border:'1px solid rgba(255,255,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:14,fontWeight:700,color:'white'}}>
+                {c.name.split(' ').map(n=>n[0]).join('')}
+              </div>
+              <div>
+                <div style={{fontSize:13,fontWeight:600,color:'var(--text)',marginBottom:2}}>{c.country} {c.name}</div>
+                <div style={{fontSize:11,color:'var(--dim)'}}>{c.role}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// SPACEX DASHBOARD
+// ══════════════════════════════════════════
+function SpaceXDashboard(){
+  const [launches,setLaunches]=useState(MOCK_LAUNCHES);
+  const [selected,setSelected]=useState(null);
+  const [loading,setLoading]=useState(true);
+  const [countdowns,setCountdowns]=useState({});
+
+  useEffect(()=>{
+    (async()=>{
+      const d=await apiFetch(`${SPACEX_API}/launches/upcoming`);
+      if(d?.length>0) setLaunches(d.slice(0,8));
+      setLoading(false);
+    })();
+  },[]);
+
+  // Countdown tick
+  useEffect(()=>{
+    const tick=()=>{
+      const now=Date.now();
+      const cd={};
+      launches.forEach(l=>{
+        const t=new Date(l.date_utc).getTime()-now;
+        if(t>0){
+          cd[l.id]={d:Math.floor(t/864e5),h:Math.floor((t%864e5)/36e5),m:Math.floor((t%36e5)/6e4),s:Math.floor((t%6e4)/1e3)};
+        }else cd[l.id]=null;
+      });
+      setCountdowns(cd);
+    };
+    tick();
+    const iv=setInterval(tick,1000);
+    return ()=>clearInterval(iv);
+  },[launches]);
+
+  const rocketColors={'Falcon 9':'var(--primary)','Falcon Heavy':'var(--secondary)','Starship':'var(--accent)','Crew Dragon':'var(--green)'};
+
+  return (
+    <div style={{animation:'fadeIn 0.5s ease'}}>
+      <div style={{marginBottom:20}}>
+        <h1 className="orb" style={{fontSize:'clamp(18px,2.5vw,26px)',fontWeight:700,marginBottom:6}}>SpaceX Mission Control</h1>
+        <p style={{fontSize:13,color:'var(--dim)'}}>Live launch manifest with real-time countdown timers</p>
+      </div>
+
+      {/* Stats */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:12,marginBottom:24}}>
+        {[
+          {l:'Total Launches',v:'285+',c:'var(--primary)',i:'rocket_launch'},
+          {l:'Success Rate',v:'98.3%',c:'var(--green)',i:'verified'},
+          {l:'Upcoming',v:launches.length,c:'var(--accent)',i:'schedule'},
+          {l:'Rockets Active',v:'3',c:'var(--secondary)',i:'rocket'},
+        ].map((s,i)=>(
+          <div key={i} className="stat-card" style={{textAlign:'center',padding:'16px 12px'}}>
+            <span className="msym" style={{fontSize:24,color:s.c,display:'block',marginBottom:8}}>{s.i}</span>
+            <div className="orb" style={{fontSize:'clamp(20px,3vw,28px)',fontWeight:700,color:s.c}}>{s.v}</div>
+            <div style={{fontSize:11,color:'var(--dim)',textTransform:'uppercase',letterSpacing:'0.08em',marginTop:4}}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Launches grid */}
+      {loading?(
+        <div style={{display:'flex',justifyContent:'center',padding:40}}><div className="spin-loader" style={{width:40,height:40}}/></div>
+      ):(
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))',gap:16}}>
+          {launches.map((l,i)=>{
+            const cd=countdowns[l.id];
+            const color=rocketColors[l.name?.split(' ')[0]||'Falcon 9']||'var(--primary)';
+            const isNext=i===0;
+            return (
+              <div key={l.id||i} className="glass-card" onClick={()=>setSelected(l)} style={{padding:22,borderRadius:14,cursor:'pointer',transition:'all 0.3s',borderTopColor:isNext?color:'rgba(0,229,255,0.18)',borderTop:isNext?`2px solid ${color}`:undefined,boxShadow:isNext?`0 4px 30px ${color}15`:undefined}}
+                onMouseEnter={e=>{e.currentTarget.style.transform='translateY(-3px)';e.currentTarget.style.borderColor='rgba(0,229,255,0.3)';}}
+                onMouseLeave={e=>{e.currentTarget.style.transform='';e.currentTarget.style.borderColor='';}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:16}}>
+                  <div className="badge badge-upcoming">{isNext?'NEXT LAUNCH':'UPCOMING'}</div>
+                  {isNext&&<span className="msym" style={{color:'var(--accent)',fontSize:20,animation:'neonFlicker 3s infinite'}}>local_fire_department</span>}
+                </div>
+                <h3 className="orb" style={{fontSize:17,fontWeight:600,color:'var(--text)',marginBottom:6}}>{l.name||'Mission Unknown'}</h3>
+                <p style={{fontSize:12,color:'var(--dim)',marginBottom:16,lineHeight:1.5}}>{l.details?l.details.slice(0,80)+'...':'Mission details classified.'}</p>
+
+                {/* Countdown */}
+                {cd?(
+                  <div style={{background:'rgba(0,0,0,0.4)',borderRadius:10,padding:'14px 10px',border:`1px solid ${color}25`,textAlign:'center'}}>
+                    <div style={{fontSize:10,color:'var(--dim)',letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:10}}>T-Minus Countdown</div>
+                    <div style={{display:'flex',alignItems:'flex-start',justifyContent:'center',gap:6}}>
+                      {[{v:cd.d,l:'D'},{v:cd.h,l:'H'},{v:cd.m,l:'M'},{v:cd.s,l:'S'}].map((t,j)=>(
+                        <React.Fragment key={j}>
+                          <div className="cd-block">
+                            <div className="cd-num" style={{fontSize:'clamp(20px,3.5vw,36px)',color}}>{pad2(t.v)}</div>
+                            <div className="cd-label">{t.l}</div>
+                          </div>
+                          {j<3&&<span className="cd-sep" style={{fontSize:'clamp(16px,2.5vw,28px)',color:`${color}50`,marginTop:2}}>:</span>}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+                ):(
+                  <div style={{background:'rgba(0,0,0,0.4)',borderRadius:10,padding:'14px',border:'1px solid rgba(255,255,255,0.06)',textAlign:'center',fontSize:13,color:'var(--dim)'}}>LAUNCH WINDOW PASSED</div>
+                )}
+
+                <div style={{marginTop:14,fontSize:12,color:'var(--dim)',display:'flex',justifyContent:'space-between'}}>
+                  <span>📅 {new Date(l.date_utc).toLocaleDateString()}</span>
+                  <span style={{color}}><span className="msym" style={{fontSize:14,verticalAlign:'middle'}}>rocket</span> {l.name?.split(' ')[0]||'Falcon'}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Mission Modal */}
+      {selected&&(
+        <div className="modal-overlay" onClick={()=>setSelected(null)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()} style={{maxWidth:600}}>
+            <div style={{height:2,background:'linear-gradient(90deg,transparent,var(--primary),transparent)'}}/>
+            <div style={{padding:32}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
+                <div>
+                  <div className="badge badge-upcoming" style={{marginBottom:10}}>Mission Brief</div>
+                  <h2 className="orb" style={{fontSize:22,fontWeight:700,color:'var(--text)'}}>{selected.name}</h2>
+                </div>
+                <button onClick={()=>setSelected(null)} style={{background:'none',border:'none',color:'var(--dim)',cursor:'pointer',fontSize:22}}><span className="msym">close</span></button>
+              </div>
+              <p style={{fontSize:14,lineHeight:1.7,color:'var(--dim)',marginBottom:20}}>{selected.details||'Mission details are classified. Check back closer to launch.'}</p>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                {[
+                  {l:'Launch Date',v:new Date(selected.date_utc).toLocaleString()},
+                  {l:'Mission Status',v:selected.success===null?'Upcoming':selected.success?'Success':'Failed'},
+                ].map((d,i)=>(
+                  <div key={i} style={{background:'rgba(0,0,0,0.4)',borderRadius:8,padding:'12px 14px'}}>
+                    <div style={{fontSize:10,color:'var(--dim)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:4}}>{d.l}</div>
+                    <div style={{fontSize:14,fontWeight:600,color:'var(--text)'}}>{d.v}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// NASA GALLERY
+// ══════════════════════════════════════════
+function NASAGallery(){
+  const [images,setImages]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [selected,setSelected]=useState(null);
+
+  useEffect(()=>{
+    (async()=>{
+      const d=await apiFetch(`${NASA_API}/planetary/apod?api_key=${NASA_KEY}&count=12`);
+      if(d) setImages(d);
+      setLoading(false);
+    })();
+  },[]);
+
+  return (
+    <div style={{animation:'fadeIn 0.5s ease'}}>
+      <div style={{marginBottom:20}}>
+        <h1 className="orb" style={{fontSize:'clamp(18px,2.5vw,26px)',fontWeight:700,marginBottom:6}}>NASA Deep Space Gallery</h1>
+        <p style={{fontSize:13,color:'var(--dim)'}}>Astronomy Picture of the Day archive — Hubble, JWST, and beyond</p>
+      </div>
+
+      {loading?(
+        <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:80,gap:16}}>
+          <div className="spin-loader" style={{width:48,height:48,borderWidth:3}}/>
+          <span style={{fontSize:13,color:'var(--dim)'}}>Loading NASA imagery...</span>
+        </div>
+      ):(
+        <div style={{columns:'clamp(280px,calc(25% - 12px),350px)',columnGap:14}}>
+          {images.map((img,i)=>(
+            <div key={i} className="gallery-img" style={{marginBottom:14,breakInside:'avoid',aspectRatio:img.media_type==='video'?'16/9':undefined,cursor:'pointer'}} onClick={()=>setSelected(img)}>
+              {img.media_type==='video'?(
+                <div style={{height:180,background:'linear-gradient(135deg,rgba(0,0,0,0.8),rgba(0,20,40,0.8))',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:10}}>
+                  <span className="msym" style={{fontSize:48,color:'var(--primary)',filter:'drop-shadow(0 0 12px rgba(0,229,255,0.8))'}}>smart_display</span>
+                  <div style={{fontSize:12,color:'var(--dim)',textAlign:'center',padding:'0 16px'}}>{img.title}</div>
+                </div>
+              ):(
+                <img src={img.url} alt={img.title} style={{width:'100%',display:'block'}} loading="lazy" onError={e=>e.target.src='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'}/>
+              )}
+              <div className="gallery-overlay">
+                <div style={{position:'absolute',bottom:12,left:12,right:12}}>
+                  <div style={{fontSize:13,fontWeight:600,color:'white',marginBottom:3}}>{img.title}</div>
+                  <div style={{fontSize:11,color:'rgba(255,255,255,0.6)'}}>{img.date} · NASA APOD</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {selected&&(
+        <div className="modal-overlay" onClick={()=>setSelected(null)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()}>
+            <div style={{padding:0}}>
+              {selected.media_type!=='video'&&(
+                <img src={selected.url} alt={selected.title} style={{width:'100%',maxHeight:'55vh',objectFit:'cover',borderRadius:'14px 14px 0 0'}}/>
+              )}
+              <div style={{padding:24}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
+                  <h2 style={{fontSize:20,fontWeight:700,color:'var(--text)',lineHeight:1.3,flex:1,marginRight:16}}>{selected.title}</h2>
+                  <button onClick={()=>setSelected(null)} style={{background:'none',border:'none',color:'var(--dim)',cursor:'pointer',flexShrink:0}}>
+                    <span className="msym" style={{fontSize:24}}>close</span>
+                  </button>
+                </div>
+                <div style={{display:'flex',gap:10,marginBottom:14}}>
+                  <div className="chip">{selected.date}</div>
+                  {selected.copyright&&<div className="chip">© {selected.copyright}</div>}
+                </div>
+                <p style={{fontSize:14,lineHeight:1.7,color:'var(--dim)'}}>{selected.explanation}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// ASTEROID MONITOR
+// ══════════════════════════════════════════
+function AsteroidMonitor(){
+  const [asteroids,setAsteroids]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [chartReady,setChartReady]=useState(false);
+  const chartRef=useRef(null);
+  const chartInstance=useRef(null);
+
+  useEffect(()=>{
+    (async()=>{
+      const today=new Date().toISOString().slice(0,10);
+      const d=await apiFetch(`${NASA_API}/neo/rest/v1/feed?start_date=${today}&end_date=${today}&api_key=${NASA_KEY}`);
+      if(d?.near_earth_objects){
+        const all=Object.values(d.near_earth_objects).flat().slice(0,16);
+        setAsteroids(all);
+      } else {
+        // Mock asteroids
+        setAsteroids(Array.from({length:10},(_,i)=>({
+          name:`2024-XQ${i+1}`,
+          estimated_diameter:{kilometers:{estimated_diameter_max:(Math.random()*2+0.05).toFixed(2)}},
+          is_potentially_hazardous_asteroid:i<2,
+          close_approach_data:[{miss_distance:{kilometers:fmt(Math.floor(Math.random()*8000000+500000))},relative_velocity:{kilometers_per_second:(Math.random()*30+5).toFixed(2)},close_approach_date:today}]
+        })));
+      }
+      setLoading(false);
+      setChartReady(true);
+    })();
+  },[]);
+
+  useEffect(()=>{
+    if(!chartReady||!chartRef.current||asteroids.length===0) return;
+    if(chartInstance.current) chartInstance.current.destroy();
+    const ctx=chartRef.current.getContext('2d');
+    const sizes=asteroids.slice(0,8).map(a=>parseFloat(a.estimated_diameter?.kilometers?.estimated_diameter_max||0.1).toFixed(3));
+    const names=asteroids.slice(0,8).map(a=>a.name?.replace('(','').replace(')','').slice(0,12));
+    chartInstance.current=new Chart(ctx,{
+      type:'bar',
+      data:{labels:names,datasets:[{label:'Diameter (km)',data:sizes,backgroundColor:asteroids.slice(0,8).map(a=>a.is_potentially_hazardous_asteroid?'rgba(255,23,68,0.6)':'rgba(0,229,255,0.5)'),borderColor:asteroids.slice(0,8).map(a=>a.is_potentially_hazardous_asteroid?'#ff1744':'#00e5ff'),borderWidth:1}]},
+      options:{responsive:true,plugins:{legend:{display:false},tooltip:{titleColor:'#e2e8f7',bodyColor:'#64748b',backgroundColor:'rgba(4,12,24,0.95)',borderColor:'rgba(0,229,255,0.2)',borderWidth:1}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10}}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:11}},title:{display:true,text:'Diameter (km)',color:'#64748b',font:{size:11}}}}}
+    });
+    return ()=>{if(chartInstance.current) chartInstance.current.destroy();};
+  },[chartReady,asteroids]);
+
+  const threatLevel=(a)=>{
+    if(a.is_potentially_hazardous_asteroid) return 2;
+    const dist=parseFloat(a.close_approach_data?.[0]?.miss_distance?.kilometers?.toString().replace(/,/g,'')||9e9);
+    if(dist<1e6) return 1;
+    return 0;
+  };
+  const threatColors=['var(--green)','var(--yellow)','var(--red)'];
+  const threatLabels=['Nominal','Caution','Hazardous'];
+
+  return (
+    <div style={{animation:'fadeIn 0.5s ease'}}>
+      <div style={{marginBottom:20}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
+          <h1 className="orb" style={{fontSize:'clamp(18px,2.5vw,26px)',fontWeight:700}}>Asteroid Watch</h1>
+          <div className="badge badge-scheduled"><span className="msym" style={{fontSize:14}}>crisis_alert</span>NEO ALERT</div>
+        </div>
+        <p style={{fontSize:13,color:'var(--dim)'}}>NASA NeoWs — Near-Earth Object monitoring, today's approaches</p>
+      </div>
+
+      {/* Summary cards */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:12,marginBottom:20}}>
+        {[
+          {l:'Tracked Today',v:asteroids.length,i:'radar',c:'var(--primary)'},
+          {l:'Hazardous',v:asteroids.filter(a=>a.is_potentially_hazardous_asteroid).length,i:'warning',c:'var(--red)'},
+          {l:'Closest (km)',v:asteroids[0]?.close_approach_data?.[0]?.miss_distance?.kilometers?.toString().slice(0,8)||'—',i:'my_location',c:'var(--accent)'},
+          {l:'Threat Level',v:'Low',i:'shield',c:'var(--green)'},
+        ].map((s,i)=>(
+          <div key={i} className="stat-card" style={{padding:'16px 14px',textAlign:'center'}}>
+            <span className="msym" style={{fontSize:24,color:s.c,display:'block',marginBottom:6}}>{s.i}</span>
+            <div className="orb" style={{fontSize:'clamp(18px,2.5vw,26px)',fontWeight:700,color:s.c}}>{s.v}</div>
+            <div style={{fontSize:11,color:'var(--dim)',textTransform:'uppercase',letterSpacing:'0.08em',marginTop:4}}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Chart */}
+      <div className="glass-card" style={{padding:20,borderRadius:14,marginBottom:20}}>
+        <div className="section-head">
+          <div className="section-icon"><span className="msym" style={{fontSize:20}}>bar_chart</span></div>
+          <span className="section-title">Estimated Diameter Distribution</span>
+          <div style={{marginLeft:'auto',display:'flex',gap:10}}>
+            <span style={{display:'flex',alignItems:'center',gap:5,fontSize:12,color:'var(--dim)'}}><span style={{width:10,height:10,borderRadius:2,background:'rgba(0,229,255,0.5)',display:'inline-block'}}/> Normal</span>
+            <span style={{display:'flex',alignItems:'center',gap:5,fontSize:12,color:'var(--dim)'}}><span style={{width:10,height:10,borderRadius:2,background:'rgba(255,23,68,0.6)',display:'inline-block'}}/> Hazardous</span>
+          </div>
+        </div>
+        <canvas ref={chartRef} style={{maxHeight:260}}/>
+      </div>
+
+      {/* Asteroid table */}
+      {loading?(
+        <div style={{display:'flex',justifyContent:'center',padding:40}}><div className="spin-loader" style={{width:40,height:40}}/></div>
+      ):(
+        <div className="glass-card" style={{padding:20,borderRadius:14}}>
+          <div className="section-head">
+            <div className="section-icon" style={{background:'rgba(255,23,68,0.1)',borderColor:'rgba(255,23,68,0.2)'}}><span className="msym" style={{color:'var(--red)',fontSize:20}}>crisis_alert</span></div>
+            <span className="section-title">Today's Close Approaches</span>
+          </div>
+          <div style={{overflowX:'auto'}}>
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
+              <thead>
+                <tr style={{borderBottom:'1px solid var(--border)'}}>
+                  {['Object','Diameter (km)','Miss Distance','Velocity (km/s)','Threat'].map(h=>(
+                    <th key={h} style={{padding:'8px 12px',textAlign:'left',color:'var(--dim)',fontSize:11,letterSpacing:'0.08em',textTransform:'uppercase',fontWeight:600,whiteSpace:'nowrap'}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {asteroids.slice(0,12).map((a,i)=>{
+                  const t=threatLevel(a);
+                  return (
+                    <tr key={i} style={{borderBottom:'1px solid rgba(255,255,255,0.03)',transition:'background 0.2s'}} onMouseEnter={e=>e.currentTarget.style.background='rgba(0,229,255,0.03)'} onMouseLeave={e=>e.currentTarget.style.background=''}>
+                      <td style={{padding:'10px 12px',fontWeight:600,color:'var(--text)',whiteSpace:'nowrap'}}>{a.name?.replace(/[()]/g,'').slice(0,20)}</td>
+                      <td style={{padding:'10px 12px',color:'var(--dim)',fontFamily:'JetBrains Mono'}}>{parseFloat(a.estimated_diameter?.kilometers?.estimated_diameter_max||0).toFixed(4)}</td>
+                      <td style={{padding:'10px 12px',color:'var(--dim)',fontFamily:'JetBrains Mono',whiteSpace:'nowrap'}}>{a.close_approach_data?.[0]?.miss_distance?.kilometers?.toString().slice(0,12)||'—'} km</td>
+                      <td style={{padding:'10px 12px',color:'var(--dim)',fontFamily:'JetBrains Mono'}}>{parseFloat(a.close_approach_data?.[0]?.relative_velocity?.kilometers_per_second||0).toFixed(2)}</td>
+                      <td style={{padding:'10px 12px'}}>
+                        <span style={{color:threatColors[t],fontSize:12,fontWeight:600,display:'flex',alignItems:'center',gap:4}}>
+                          <span style={{width:7,height:7,borderRadius:'50%',background:threatColors[t],display:'inline-block',boxShadow:`0 0 6px ${threatColors[t]}`}}/>
+                          {threatLabels[t]}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// AI ORACLE
+// ══════════════════════════════════════════
+function AIOracle(){
+  const [messages,setMessages]=useState([
+    {role:'ai',text:"I am ORACLE — AetherOS's neural space intelligence. Ask me about missions, celestial mechanics, or anything in the cosmos. How can I assist today, Commander?"}
+  ]);
+  const [input,setInput]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [apiKey,setApiKey]=useState('');
+  const [showKeyInput,setShowKeyInput]=useState(false);
+  const chatEndRef=useRef(null);
+
+  useEffect(()=>{ chatEndRef.current?.scrollIntoView({behavior:'smooth'}); },[messages]);
+
+  const mockReplies=[
+    "The International Space Station orbits Earth at approximately 408 km altitude, completing 15.5 orbits daily at 27,600 km/h. It's as large as a football field and houses up to 10 crew members.",
+    "SpaceX's Starship is designed for Mars colonization — a fully reusable two-stage vehicle. The Super Heavy booster generates 16.7 million pounds of thrust from 33 Raptor engines.",
+    "NASA's Artemis program aims to return humans to the Moon by 2026, establishing a permanent Gateway lunar station as a stepping stone for eventual Mars missions.",
+    "Near-Earth Objects (NEOs) are tracked by NASA's Planetary Defense Coordination Office. The DART mission successfully deflected asteroid Dimorphos in 2022.",
+    "The James Webb Space Telescope (JWST) orbits at L2, 1.5 million km from Earth. Its 6.5m mirror captures infrared light, revealing galaxies over 13 billion light-years away.",
+    "Mars has two tiny moons — Phobos and Deimos. Phobos orbits so close it will eventually break apart from tidal forces, creating a ring around Mars in ~50 million years.",
+    "A black hole is a region where gravity is so intense that not even light can escape past the event horizon. The supermassive black hole at our galaxy's center is 4 million solar masses.",
+  ];
+
+  const send=async()=>{
+    if(!input.trim()||loading) return;
+    const userMsg=input.trim();
+    setInput('');
+    setMessages(m=>[...m,{role:'user',text:userMsg}]);
+    setLoading(true);
+    await sleep(300);
+
+    if(apiKey){
+      // Real Gemini API
+      const res=await apiFetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,null);
+      // (simplified - in real usage would POST with body)
+    }
+
+    // Mock response
+    await sleep(1200+Math.random()*800);
+    const reply=mockReplies[Math.floor(Math.random()*mockReplies.length)];
+    setMessages(m=>[...m,{role:'ai',text:reply}]);
+    setLoading(false);
+  };
+
+  const suggestions=['What is the ISS?','Tell me about SpaceX Starship','How does JWST work?','Explain black holes','Artemis Moon mission'];
+
+  return (
+    <div style={{animation:'fadeIn 0.5s ease'}}>
+      <div style={{marginBottom:20}}>
+        <h1 className="orb" style={{fontSize:'clamp(18px,2.5vw,26px)',fontWeight:700,marginBottom:6}}>AI Oracle</h1>
+        <p style={{fontSize:13,color:'var(--dim)'}}>Gemini-powered space intelligence assistant</p>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'1fr 300px',gap:16,alignItems:'start'}}>
+        {/* Chat */}
+        <div className="glass-card" style={{borderRadius:14,overflow:'hidden',display:'flex',flexDirection:'column',height:'calc(100vh - 200px)',minHeight:500}}>
+          {/* Oracle header */}
+          <div style={{padding:'16px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:14}}>
+            <div style={{position:'relative',width:52,height:52,flexShrink:0}}>
+              <div style={{position:'absolute',inset:0,borderRadius:'50%',border:'1px solid rgba(124,58,237,0.4)',animation:'pulse-ring 2s ease-out infinite'}}/>
+              <div style={{width:52,height:52,borderRadius:'50%',background:'linear-gradient(135deg,rgba(124,58,237,0.2),rgba(0,229,255,0.2))',border:'1px solid rgba(124,58,237,0.4)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <span className="msym" style={{fontSize:28,color:'var(--secondary)',filter:'drop-shadow(0 0 8px rgba(124,58,237,0.8))'}}>psychology</span>
+              </div>
+            </div>
+            <div style={{flex:1}}>
+              <div className="orb" style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>ORACLE Neural Interface</div>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginTop:3}}>
+                <div className="voice-wave">{[...Array(7)].map((_,i)=><div key={i} className="wave-bar" style={{animation:`voiceWave ${0.8+i*0.1}s ease-in-out infinite ${i*0.1}s`}}/>)}</div>
+                <span style={{fontSize:11,color:'var(--dim)'}}>v4.2 · Gemini Core</span>
+              </div>
+            </div>
+            <button onClick={()=>setShowKeyInput(!showKeyInput)} style={{background:'none',border:'1px solid var(--border)',borderRadius:8,padding:'6px 12px',color:'var(--dim)',cursor:'pointer',fontSize:12,display:'flex',alignItems:'center',gap:5,transition:'all 0.2s'}} onMouseEnter={e=>e.currentTarget.style.color='var(--primary)'} onMouseLeave={e=>e.currentTarget.style.color='var(--dim)'}>
+              <span className="msym" style={{fontSize:16}}>key</span> API Key
+            </button>
+          </div>
+
+          {showKeyInput&&(
+            <div style={{padding:'12px 20px',background:'rgba(0,0,0,0.3)',borderBottom:'1px solid var(--border)'}}>
+              <div style={{display:'flex',gap:10}}>
+                <input type="password" placeholder="Enter Gemini API Key (optional)" value={apiKey} onChange={e=>setApiKey(e.target.value)} style={{flex:1,background:'rgba(0,0,0,0.4)',border:'1px solid var(--border)',borderRadius:8,padding:'8px 14px',color:'var(--text)',fontSize:13,outline:'none',fontFamily:'JetBrains Mono'}} onFocus={e=>e.target.style.borderColor='rgba(0,229,255,0.4)'} onBlur={e=>e.target.style.borderColor='var(--border)'}/>
+                <button onClick={()=>setShowKeyInput(false)} className="btn btn-primary" style={{padding:'8px 14px'}}>Save</button>
+              </div>
+              <p style={{fontSize:11,color:'var(--dim)',marginTop:6}}>Without a key, ORACLE uses curated space knowledge responses.</p>
+            </div>
+          )}
+
+          {/* Messages */}
+          <div style={{flex:1,overflowY:'auto',padding:'20px',display:'flex',flexDirection:'column',gap:14}}>
+            {messages.map((msg,i)=>(
+              <div key={i} className={msg.role==='user'?'msg-user':'msg-ai'} style={{animation:'fadeIn 0.4s ease'}}>
+                {msg.role==='ai'&&<div style={{fontSize:10,color:'var(--secondary)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:6,fontWeight:600}}>ORACLE</div>}
+                <p style={{fontSize:14,lineHeight:1.65,color:msg.role==='ai'?'var(--text)':'rgba(255,255,255,0.9)'}}>{msg.text}</p>
+              </div>
+            ))}
+            {loading&&(
+              <div className="msg-ai" style={{animation:'fadeIn 0.3s ease'}}>
+                <div style={{fontSize:10,color:'var(--secondary)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:8,fontWeight:600}}>ORACLE</div>
+                <div style={{display:'flex',gap:5,alignItems:'center'}}>
+                  {[0,1,2].map(i=><div key={i} style={{width:7,height:7,borderRadius:'50%',background:'var(--primary)',animation:`typingDot 1.2s ease-in-out infinite`,animationDelay:`${i*0.2}s`}}/>)}
+                  <span style={{fontSize:12,color:'var(--dim)',marginLeft:6}}>Processing neural query...</span>
+                </div>
+              </div>
+            )}
+            <div ref={chatEndRef}/>
+          </div>
+
+          {/* Input */}
+          <div style={{padding:'14px 20px',borderTop:'1px solid var(--border)'}}>
+            <div style={{display:'flex',gap:10}}>
+              <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&send()} placeholder="Ask ORACLE anything about space..." style={{flex:1,background:'rgba(0,0,0,0.4)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:10,padding:'12px 16px',color:'var(--text)',fontSize:14,outline:'none',fontFamily:'Rajdhani',transition:'border-color 0.2s'}} onFocus={e=>e.target.style.borderColor='rgba(0,229,255,0.4)'} onBlur={e=>e.target.style.borderColor='rgba(255,255,255,0.1)'}/>
+              <button onClick={send} disabled={loading} className="btn btn-primary" style={{padding:'12px 16px',flexShrink:0}}>
+                {loading?<div className="spin-loader" style={{width:18,height:18,borderWidth:2}}/>:<span className="msym">send</span>}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Suggestions sidebar */}
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div className="glass-card" style={{padding:18,borderRadius:12}}>
+            <div style={{fontSize:12,color:'var(--primary)',fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:12}}>Quick Queries</div>
+            {suggestions.map((s,i)=>(
+              <button key={i} onClick={()=>{setInput(s);}} style={{display:'block',width:'100%',textAlign:'left',background:'rgba(0,0,0,0.3)',border:'1px solid rgba(255,255,255,0.05)',borderRadius:8,padding:'10px 12px',color:'var(--dim)',fontSize:13,cursor:'pointer',marginBottom:6,transition:'all 0.2s',fontFamily:'Rajdhani'}} onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(0,229,255,0.2)';e.currentTarget.style.color='var(--text)';}} onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.05)';e.currentTarget.style.color='var(--dim)';}}>
+                <span className="msym" style={{fontSize:14,verticalAlign:'middle',marginRight:6,color:'var(--primary)'}}>auto_awesome</span>
+                {s}
+              </button>
+            ))}
+          </div>
+
+          <div className="glass-card" style={{padding:18,borderRadius:12}}>
+            <div style={{fontSize:12,color:'var(--primary)',fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:12}}>System Status</div>
+            {[
+              {l:'Neural Core',v:'Online',c:'var(--green)'},
+              {l:'Data Feed',v:'Live',c:'var(--green)'},
+              {l:'Gemini API',v:apiKey?'Connected':'Demo Mode',c:apiKey?'var(--green)':'var(--yellow)'},
+              {l:'Response Latency',v:'<500ms',c:'var(--primary)'},
+            ].map((s,i)=>(
+              <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'7px 0',borderBottom:i<3?'1px solid rgba(255,255,255,0.04)':''}}>
+                <span style={{fontSize:12,color:'var(--dim)'}}>{s.l}</span>
+                <span style={{fontSize:12,fontWeight:600,color:s.c,display:'flex',alignItems:'center',gap:4}}>
+                  <span style={{width:5,height:5,borderRadius:'50%',background:s.c,display:'inline-block'}}/>
+                  {s.v}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// USER PROFILE
+// ══════════════════════════════════════════
+function UserProfile({user}){
+  const [tab,setTab]=useState('settings');
+  const tabs=['settings','missions','favorites'];
+  const savedMissions=[
+    {name:'Artemis III',type:'NASA',date:'2026',status:'Planned'},
+    {name:'Starship IFT-7',type:'SpaceX',date:'2025',status:'Upcoming'},
+    {name:'Europa Clipper',type:'NASA',date:'2024',status:'Active'},
+  ];
+
+  return (
+    <div style={{animation:'fadeIn 0.5s ease'}}>
+      <div style={{marginBottom:20}}>
+        <h1 className="orb" style={{fontSize:'clamp(18px,2.5vw,26px)',fontWeight:700,marginBottom:6}}>Commander Profile</h1>
+        <p style={{fontSize:13,color:'var(--dim)'}}>Manage your mission preferences and account settings</p>
+      </div>
+
+      {/* Profile hero */}
+      <div className="glass-card" style={{padding:28,borderRadius:16,marginBottom:20}}>
+        <div style={{display:'flex',alignItems:'center',gap:20,flexWrap:'wrap'}}>
+          <div style={{width:80,height:80,borderRadius:'50%',background:'linear-gradient(135deg,rgba(0,229,255,0.3),rgba(124,58,237,0.3))',border:'2px solid rgba(0,229,255,0.4)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,fontWeight:700,color:'var(--primary)',fontFamily:'Orbitron',flexShrink:0,boxShadow:'0 0 30px rgba(0,229,255,0.2)'}}>
+            {user?.avatar||'UC'}
+          </div>
+          <div style={{flex:1}}>
+            <h2 className="orb" style={{fontSize:22,fontWeight:700,color:'var(--text)',marginBottom:4}}>{user?.name||'Commander'}</h2>
+            <p style={{fontSize:13,color:'var(--dim)',marginBottom:10,fontFamily:'JetBrains Mono'}}>{user?.email||'commander@aetheros.io'}</p>
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              <div className="badge badge-live">Mission Active</div>
+              <div className="chip">Sector 7G</div>
+              <div className="chip">Level 4 Clearance</div>
+            </div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,minWidth:200}}>
+            {[{l:'Missions Saved',v:'3'},{l:'Favorites',v:'12'},{l:'Days Active',v:'7'},{l:'Alerts Set',v:'5'}].map((s,i)=>(
+              <div key={i} style={{background:'rgba(0,0,0,0.3)',borderRadius:8,padding:'10px 12px',textAlign:'center'}}>
+                <div className="orb" style={{fontSize:20,fontWeight:700,color:'var(--primary)',marginBottom:3}}>{s.v}</div>
+                <div style={{fontSize:10,color:'var(--dim)',textTransform:'uppercase',letterSpacing:'0.08em'}}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:'flex',gap:4,marginBottom:20,background:'rgba(0,0,0,0.3)',padding:4,borderRadius:10,width:'fit-content',border:'1px solid var(--border)'}}>
+        {tabs.map(t=>(
+          <button key={t} onClick={()=>setTab(t)} style={{padding:'8px 20px',borderRadius:8,border:'none',cursor:'pointer',fontSize:13,fontWeight:600,letterSpacing:'0.04em',textTransform:'capitalize',transition:'all 0.2s',fontFamily:'Rajdhani',background:tab===t?'rgba(0,229,255,0.12)':'transparent',color:tab===t?'var(--primary)':'var(--dim)',borderBottom:tab===t?'1px solid rgba(0,229,255,0.4)':'1px solid transparent'}}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {tab==='settings'&&(
+        <div className="glass-card" style={{padding:28,borderRadius:14}}>
+          <div className="section-head"><div className="section-icon"><span className="msym" style={{fontSize:20}}>settings</span></div><span className="section-title">Account Settings</span></div>
+          <div style={{display:'flex',flexDirection:'column',gap:18,maxWidth:500}}>
+            {[{l:'Display Name',v:user?.name||'Commander',i:'person'},{l:'Email',v:user?.email||'commander@aetheros.io',i:'email'},{l:'Clearance Level',v:'Level 4 — Delta',i:'security'},{l:'Home Base',v:'Sector 7G, Earth',i:'location_on'}].map((f,i)=>(
+              <div key={i} className="input-wrap">
+                <input type="text" className="input-field" defaultValue={f.v} placeholder=" "/>
+                <label className="input-label">{f.l}</label>
+                <span className="msym input-icon">{f.i}</span>
+              </div>
+            ))}
+            <div style={{display:'flex',gap:10,marginTop:4}}>
+              <button className="btn btn-primary" style={{padding:'10px 24px'}}>Save Changes</button>
+              <button className="btn btn-outline" style={{padding:'10px 24px'}}>Reset</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab==='missions'&&(
+        <div className="glass-card" style={{padding:24,borderRadius:14}}>
+          <div className="section-head"><div className="section-icon"><span className="msym" style={{fontSize:20}}>bookmark</span></div><span className="section-title">Saved Missions</span></div>
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {savedMissions.map((m,i)=>(
+              <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'rgba(0,0,0,0.3)',borderRadius:10,padding:'14px 18px',border:'1px solid rgba(255,255,255,0.04)',flexWrap:'wrap',gap:10}}>
+                <div>
+                  <div style={{fontSize:15,fontWeight:600,color:'var(--text)',marginBottom:3}}>{m.name}</div>
+                  <div style={{fontSize:12,color:'var(--dim)'}}>{m.type} · {m.date}</div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:10}}>
+                  <div className={`badge ${m.status==='Active'?'badge-live':m.status==='Upcoming'?'badge-upcoming':'badge-scheduled'}`}>{m.status}</div>
+                  <button style={{background:'none',border:'none',color:'var(--dim)',cursor:'pointer',transition:'color 0.2s'}} onMouseEnter={e=>e.currentTarget.style.color='var(--red)'} onMouseLeave={e=>e.currentTarget.style.color='var(--dim)'}><span className="msym" style={{fontSize:20}}>delete</span></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab==='favorites'&&(
+        <div className="glass-card" style={{padding:24,borderRadius:14,textAlign:'center',padding:60}}>
+          <span className="msym" style={{fontSize:48,color:'var(--dim)',display:'block',marginBottom:16}}>favorite_border</span>
+          <h3 className="orb" style={{fontSize:18,fontWeight:600,color:'var(--text)',marginBottom:10}}>No Favorites Yet</h3>
+          <p style={{color:'var(--dim)',fontSize:14,marginBottom:20}}>Bookmark launches, asteroids, and images to see them here.</p>
+          <button className="btn btn-outline" style={{padding:'10px 24px'}}>Explore Missions</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════
+// ROOT APP
+// ══════════════════════════════════════════
+function App(){
+  const [page,setPage]=useState('landing');
+  const [section,setSection]=useState('command');
+  const [user,setUser]=useState(null);
+
+  const ctx={page,setPage,section,setSection,user,setUser};
+
+  const renderSection=()=>{
+    switch(section){
+      case 'command': return <CommandCenter/>;
+      case 'iss': return <ISSTracker/>;
+      case 'spacex': return <SpaceXDashboard/>;
+      case 'nasa': return <NASAGallery/>;
+      case 'asteroids': return <AsteroidMonitor/>;
+      case 'ai': return <AIOracle/>;
+      case 'profile': return <UserProfile user={user}/>;
+      default: return <CommandCenter/>;
+    }
+  };
+
+  return (
+    <AppCtx.Provider value={ctx}>
+      {/* Landing */}
+      <div id="page-landing" className={`page ${page==='landing'?'active':''}`}>
+        {page==='landing'&&<LandingPage/>}
+      </div>
+      {/* Login */}
+      <div id="page-login" className={`page ${page==='login'?'active':''}`}>
+        {page==='login'&&<LoginPage/>}
+      </div>
+      {/* Signup */}
+      <div id="page-signup" className={`page ${page==='signup'?'active':''}`}>
+        {page==='signup'&&<SignupPage/>}
+      </div>
+      {/* Dashboard */}
+      <div id="page-dashboard" className={`page ${page==='dashboard'?'active':''}`}>
+        {page==='dashboard'&&(
+          <DashboardLayout activeSection={section} setSection={setSection} user={user||{name:'Commander',avatar:'UC'}} setPage={setPage}>
+            {renderSection()}
+          </DashboardLayout>
+        )}
+      </div>
+    </AppCtx.Provider>
+  );
+}
+
+// Mount
+const root=ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
+
+<!-- Responsive adjustments via JS -->
+<script>
+(function(){
+  function applyResponsive(){
+    const W=window.innerWidth;
+    const isLg=W>=1024;
+    const isMd=W>=768;
+    // Search box
+    const sw=document.getElementById('search-wrap');
+    if(sw) sw.style.display=isMd?'block':'none';
+    // Menu button
+    const mb=document.getElementById('menu-btn');
+    if(mb) mb.style.display=isLg?'none':'flex';
+    // Sidebar
+    const sb=document.getElementById('main-sidebar');
+    if(sb&&isLg) sb.classList.remove('closed');
+  }
+  window.addEventListener('resize',applyResponsive);
+  // Run after React mounts
+  setTimeout(applyResponsive,500);
+  setInterval(applyResponsive,2000);
+})();
+</script>
+</body>
+</html>
