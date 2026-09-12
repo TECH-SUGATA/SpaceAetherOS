@@ -1,5 +1,5 @@
 // src/services/newsService.js
-const axios = require('axios');
+const axios = require('../utils/httpClient');
 const cache = require('../utils/cache');
 
 const NEWS_API = 'https://api.spaceflightnewsapi.net/v4';

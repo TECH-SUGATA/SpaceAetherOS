@@ -22,6 +22,7 @@
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
     "node-cron": "^3.0.3",
+    "satellite.js": "^5.0.0",
     "socket.io": "^4.6.1"
   },
   "devDependencies": {

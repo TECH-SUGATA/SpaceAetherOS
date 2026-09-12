@@ -1,5 +1,5 @@
 // src/services/nasaService.js
-const axios = require('axios');
+const axios = require('../utils/httpClient');
 const cache = require('../utils/cache');
 
 const NASA_BASE = 'https://api.nasa.gov';

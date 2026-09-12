@@ -42,8 +42,8 @@ const startServer = async () => {
   // Initialize socket handlers
   initSockets(io);
 
-  // Start cron jobs
-  initCronJobs();
+  // Start cron jobs (pass `io` so the pass-notification job can push live alerts)
+  initCronJobs(io);
 
   // Start listening
   server.listen(PORT, () => {

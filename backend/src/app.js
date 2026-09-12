@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
+const requestTimer = require('./middleware/requestTimer');
 
 const app = express();
 
@@ -46,6 +47,9 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 }
 
+// ── METRICS (per-request latency, feeds /api/metrics) ──
+app.use(requestTimer);
+
 // ── RATE LIMIT ──
 app.use('/api/', apiLimiter);
 
@@ -76,6 +80,7 @@ app.get('/', (req, res) => {
       news: '/api/news',
       chatbot: '/api/chatbot',
       dashboard: '/api/dashboard',
+      metrics: '/api/metrics',
     },
   });
 });
@@ -89,6 +94,7 @@ app.use('/api/asteroids', require('./routes/nasa')); // Reuse nasa route for ast
 app.use('/api/news', require('./routes/news'));
 app.use('/api/chatbot', require('./routes/chatbot'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/metrics', require('./routes/metrics'));
 
 // ── 404 & ERROR HANDLERS ──
 app.use(notFound);

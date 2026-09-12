@@ -1,5 +1,5 @@
 // src/services/spacexService.js
-const axios = require('axios');
+const axios = require('../utils/httpClient');
 const cache = require('../utils/cache');
 
 const SPACEX = 'https://api.spacexdata.com/v4';

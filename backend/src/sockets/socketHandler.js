@@ -1,5 +1,7 @@
 // src/sockets/socketHandler.js
 const issService = require('../services/issService');
+const metrics = require('../utils/metrics');
+const passPredictorService = require('../services/passPredictorService');
 
 let issInterval = null;
 
@@ -54,9 +56,11 @@ const initSockets = (io) => {
     const room = io.sockets.adapter.rooms.get('iss-room');
     if (!room || room.size === 0) return;
 
+    const start = Date.now();
     try {
       const pos = await issService.getPosition();
       io.to('iss-room').emit('iss:update', pos);
+      metrics.recordSocketBroadcast(Date.now() - start);
     } catch (err) {
       io.to('iss-room').emit('iss:error', { message: 'ISS data temporarily unavailable' });
     }

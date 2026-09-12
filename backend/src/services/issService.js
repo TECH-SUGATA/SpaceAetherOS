@@ -1,5 +1,5 @@
 // src/services/issService.js
-const axios = require('axios');
+const axios = require('../utils/httpClient');
 const cache = require('../utils/cache');
 
 const ISS_API = 'https://api.wheretheiss.at/v1/satellites/25544';

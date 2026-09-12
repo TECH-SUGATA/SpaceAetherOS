@@ -1,5 +1,5 @@
 // src/services/chatbotService.js
-const axios = require('axios');
+const axios = require('../utils/httpClient');
 const ChatHistory = require('../models/ChatHistory');
 const { v4: uuidv4 } = require('crypto');
 

@@ -2,6 +2,7 @@
 // Lightweight in-memory cache — no extra packages needed
 
 const store = new Map();
+const metrics = require('./metrics');
 
 const cache = {
   /**
@@ -11,11 +12,16 @@ const cache = {
    */
   get(key) {
     const item = store.get(key);
-    if (!item) return null;
-    if (Date.now() > item.expiresAt) {
-      store.delete(key);
+    if (!item) {
+      metrics.recordCacheMiss();
       return null;
     }
+    if (Date.now() > item.expiresAt) {
+      store.delete(key);
+      metrics.recordCacheMiss();
+      return null;
+    }
+    metrics.recordCacheHit();
     return item.value;
   },
 
@@ -30,6 +36,7 @@ const cache = {
       value,
       expiresAt: Date.now() + ttlSeconds * 1000,
     });
+    metrics.recordCacheSet();
   },
 
   /**
