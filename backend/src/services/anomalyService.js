@@ -39,7 +39,7 @@ function zScore(value, avg, sd) {
  */
 function detectAnomalies(objects, zThreshold = DEFAULT_Z_THRESHOLD) {
   const usable = objects.filter(
-    (o) => o.diameter?.kilometers?.estimated_diameter_max != null &&
+    (o) => o.diameter?.estimated_diameter_max != null &&
       o.closestApproach?.missDistanceKm != null &&
       o.closestApproach?.velocityKmS != null
   );
@@ -57,7 +57,7 @@ function detectAnomalies(objects, zThreshold = DEFAULT_Z_THRESHOLD) {
     id: o.id,
     name: o.name,
     isHazardous: o.isHazardous,
-    diameterKm: parseFloat(o.diameter.kilometers.estimated_diameter_max),
+    diameterKm: parseFloat(o.diameter.estimated_diameter_max),
     velocityKmS: parseFloat(o.closestApproach.velocityKmS),
     missDistanceKm: parseFloat(o.closestApproach.missDistanceKm),
     approachDate: o.closestApproach.date,
