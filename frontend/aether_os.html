@@ -532,12 +532,12 @@
   <section style="padding:0 24px 80px;position:relative;z-index:1;">
     <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;" id="stats-grid">
       <div class="stat-card hud-corners animate-fade-in stagger-1">
-        <p style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">Active Satellites</p>
-        <p style="font-family:'Sora',sans-serif;font-size:clamp(28px,4vw,44px);font-weight:700;color:var(--primary);" class="glow-primary">8,432</p>
+        <p style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">Astronauts Aboard ISS</p>
+        <p id="landing-crew" style="font-family:'Sora',sans-serif;font-size:clamp(28px,4vw,44px);font-weight:700;color:var(--primary);" class="glow-primary">—</p>
       </div>
       <div class="stat-card hud-corners animate-fade-in stagger-2">
         <p style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">NEO Threats</p>
-        <p style="font-family:'Sora',sans-serif;font-size:clamp(28px,4vw,44px);font-weight:700;color:var(--text);">0</p>
+        <p id="landing-neo-threats" style="font-family:'Sora',sans-serif;font-size:clamp(28px,4vw,44px);font-weight:700;color:var(--text);">—</p>
       </div>
       <div class="stat-card hud-corners animate-fade-in stagger-3">
         <p style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">Deep Space Probes</p>
@@ -545,7 +545,7 @@
       </div>
       <div class="stat-card hud-corners animate-fade-in stagger-4">
         <p style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">Network Latency</p>
-        <p style="font-family:'Sora',sans-serif;font-size:clamp(28px,4vw,44px);font-weight:700;color:var(--primary);" class="glow-primary">12ms</p>
+        <p id="landing-latency" style="font-family:'Sora',sans-serif;font-size:clamp(28px,4vw,44px);font-weight:700;color:var(--primary);" class="glow-primary">—</p>
       </div>
     </div>
   </section>
@@ -819,7 +819,7 @@
               <span style="width:5px;height:5px;border-radius:50%;background:var(--primary);" class="animate-blink"></span>STABLE
             </span>
           </div>
-          <p style="font-family:'Sora',sans-serif;font-size:clamp(20px,3vw,36px);font-weight:700;color:var(--primary);" class="glow-primary">27,562 <span style="font-size:14px;color:var(--text-dim);font-weight:400;">km/h</span></p>
+          <p style="font-family:'Sora',sans-serif;font-size:clamp(20px,3vw,36px);font-weight:700;color:var(--primary);" class="glow-primary"><span id="dash-velocity">27,562</span> <span style="font-size:14px;color:var(--text-dim);font-weight:400;">km/h</span></p>
           <div style="margin-top:16px;height:48px;display:flex;align-items:flex-end;gap:2px;">
             <div style="flex:1;background:rgba(0,245,255,0.3);height:25%;border-radius:2px 2px 0 0;transition:height 0.3s;"></div>
             <div style="flex:1;background:rgba(0,245,255,0.4);height:40%;border-radius:2px 2px 0 0;"></div>
@@ -891,7 +891,7 @@
             <path d="M 50,300 Q 400,80 750,300" fill="none" stroke="#00f5ff" stroke-width="1.5" stroke-dasharray="8,4" opacity="0.6"/>
           </svg>
           <!-- ISS Marker -->
-          <div style="position:absolute;top:38%;left:58%;transform:translate(-50%,-50%);z-index:10;">
+          <div id="iss-marker" style="position:absolute;top:38%;left:58%;transform:translate(-50%,-50%);z-index:10;transition:top 1s linear,left 1s linear;">
             <div style="position:relative;display:flex;align-items:center;justify-content:center;">
               <div style="position:absolute;width:60px;height:60px;border-radius:50%;border:1px solid var(--primary);opacity:0.3;" class="animate-pulse-ring"></div>
               <div style="position:absolute;width:40px;height:40px;border-radius:50%;border:1px solid var(--primary);opacity:0.5;" class="animate-pulse-ring" style="animation-delay:0.5s;"></div>
@@ -903,17 +903,17 @@
           <div style="position:absolute;top:16px;left:16px;display:flex;flex-direction:column;gap:10px;z-index:10;">
             <div style="background:rgba(3,7,18,0.8);backdrop-filter:blur(12px);border:1px solid rgba(0,245,255,0.2);border-radius:10px;padding:12px 16px;">
               <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;">Altitude</div>
-              <div style="font-family:'Geist Mono',monospace;font-size:18px;color:var(--primary);font-weight:600;" class="glow-primary">422.5 KM</div>
+              <div id="iss-altitude" style="font-family:'Geist Mono',monospace;font-size:18px;color:var(--primary);font-weight:600;" class="glow-primary">— KM</div>
             </div>
             <div style="background:rgba(3,7,18,0.8);backdrop-filter:blur(12px);border:1px solid rgba(0,245,255,0.2);border-radius:10px;padding:12px 16px;">
               <div style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;">Velocity</div>
-              <div style="font-family:'Geist Mono',monospace;font-size:18px;color:var(--primary);font-weight:600;" class="glow-primary">27,580 KM/H</div>
+              <div id="iss-velocity" style="font-family:'Geist Mono',monospace;font-size:18px;color:var(--primary);font-weight:600;" class="glow-primary">— KM/H</div>
             </div>
           </div>
           <div style="position:absolute;top:16px;right:16px;background:rgba(3,7,18,0.8);backdrop-filter:blur(12px);border:1px solid rgba(0,245,255,0.15);border-radius:10px;padding:12px 16px;text-align:right;z-index:10;">
-            <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--primary);">LAT: 45.321° N</div>
-            <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--primary);">LNG: 12.004° E</div>
-            <div style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-dim);">ALT: 408 km</div>
+            <div id="iss-lat" style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--primary);">LAT: —</div>
+            <div id="iss-lng" style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--primary);">LNG: —</div>
+            <div id="iss-updated" style="font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-dim);">Waiting for live data…</div>
           </div>
         </div>
       </section>
@@ -1003,23 +1003,8 @@
           <span class="section-title">Near-Earth Objects</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr;gap:12px;" id="asteroid-grid">
-          <div class="stat-card" style="border-top-color:rgba(255,100,100,0.3);">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-              <div>
-                <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">2024-XQ Asteroid</div>
-                <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--text-dim);">Dist: 1.2M km &nbsp;|&nbsp; Vel: 45 km/s &nbsp;|&nbsp; Threat: <span style="color:#ff7070;">Elevated</span></div>
-              </div>
-              <button class="btn-outline" style="padding:8px 20px;border-radius:8px;font-size:12px;border-color:rgba(255,100,100,0.4);color:#ff7070;" onmouseover="this.style.background='rgba(255,100,100,0.1)'" onmouseout="this.style.background='transparent'">Track →</button>
-            </div>
-          </div>
           <div class="stat-card">
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-              <div>
-                <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">2023-GH7 Apollo</div>
-                <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--text-dim);">Dist: 8.4M km &nbsp;|&nbsp; Vel: 22 km/s &nbsp;|&nbsp; Threat: <span style="color:var(--primary);">Nominal</span></div>
-              </div>
-              <button class="btn-outline" style="padding:8px 20px;border-radius:8px;font-size:12px;">Track →</button>
-            </div>
+            <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--text-dim);">Loading live NASA near-earth object data…</div>
           </div>
         </div>
       </section>
@@ -1100,15 +1085,9 @@
               </div>
             </div>
             <!-- Chat messages -->
-            <div style="padding:24px;display:flex;flex-direction:column;gap:16px;">
+            <div id="oracle-chat" style="padding:24px;display:flex;flex-direction:column;gap:16px;">
               <div style="max-width:80%;background:rgba(255,255,255,0.05);border-radius:0 12px 12px 12px;padding:14px 18px;border:1px solid rgba(255,255,255,0.06);">
-                <p style="font-size:14px;line-height:1.6;color:var(--text);">Commander, telemetry indicates a 4% deviation in the thruster burn schedule. Shall I recalculate the orbital insertion vector?</p>
-              </div>
-              <div style="max-width:80%;background:rgba(0,245,255,0.06);border-radius:12px 0 12px 12px;padding:14px 18px;border:1px solid rgba(0,245,255,0.15);align-self:flex-end;box-shadow:0 0 20px rgba(0,245,255,0.06);">
-                <p style="font-size:14px;line-height:1.6;color:var(--primary);">Yes, proceed. Overlay the new vector on the main HUD.</p>
-              </div>
-              <div style="max-width:80%;background:rgba(255,255,255,0.05);border-radius:0 12px 12px 12px;padding:14px 18px;border:1px solid rgba(255,255,255,0.06);">
-                <p style="font-size:14px;line-height:1.6;color:var(--text);">Recalculation complete. New burn window: T+14:22. Confidence: 99.7%. HUD overlay transmitted.</p>
+                <p style="font-size:14px;line-height:1.6;color:var(--text);">Commander, I'm connected to live orbital telemetry. Ask me about the ISS, SpaceX launches, near-Earth objects, or anything else in the AETHER_OS network.</p>
               </div>
             </div>
             <!-- Input -->
@@ -1231,10 +1210,10 @@
     if (ds && isMd && ds.children.length === 2) {
       const s3 = document.createElement('div');
       s3.className = 'stat-card hud-corners';
-      s3.innerHTML = `<p style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">Active Satellites</p><p style="font-family:'Sora',sans-serif;font-size:clamp(20px,3vw,36px);font-weight:700;color:var(--primary);" class="glow-primary">8,432</p>`;
+      s3.innerHTML = `<p style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">Astronauts Aboard ISS</p><p id="dash-crew" style="font-family:'Sora',sans-serif;font-size:clamp(20px,3vw,36px);font-weight:700;color:var(--primary);" class="glow-primary">—</p>`;
       const s4 = document.createElement('div');
       s4.className = 'stat-card hud-corners';
-      s4.innerHTML = `<p style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">Network Latency</p><p style="font-family:'Sora',sans-serif;font-size:clamp(20px,3vw,36px);font-weight:700;color:var(--primary);" class="glow-primary">12ms</p>`;
+      s4.innerHTML = `<p style="font-family:'Geist Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px;">Network Latency</p><p id="dash-latency" style="font-family:'Sora',sans-serif;font-size:clamp(20px,3vw,36px);font-weight:700;color:var(--primary);" class="glow-primary">—</p>`;
       ds.appendChild(s3);
       ds.appendChild(s4);
     }
@@ -1321,35 +1300,169 @@
     if(s) s.textContent = pad(sec);
   }
 
-  // ── Oracle chat ──
+  // ── Oracle chat (wired to real backend: POST /api/chatbot) ──
+  let oracleSessionId = null;
   function sendOracleMsg() {
     const input = document.getElementById('oracle-input');
     const val = input.value.trim();
     if (!val) return;
     input.value = '';
-    const chatArea = input.closest('section').querySelector('[style*="flex-direction:column;gap:16px"]');
+    const chatArea = document.getElementById('oracle-chat');
     if (!chatArea) return;
     // User msg
     const userMsg = document.createElement('div');
     userMsg.style.cssText = 'max-width:80%;background:rgba(0,245,255,0.06);border-radius:12px 0 12px 12px;padding:14px 18px;border:1px solid rgba(0,245,255,0.15);align-self:flex-end;';
-    userMsg.innerHTML = `<p style="font-size:14px;line-height:1.6;color:var(--primary);">${val}</p>`;
+    userMsg.innerHTML = `<p style="font-size:14px;line-height:1.6;color:var(--primary);">${escapeHtml(val)}</p>`;
     chatArea.appendChild(userMsg);
-    // AI response
-    setTimeout(() => {
-      const replies = [
-        "Understood, Commander. Processing your directive now. All systems adjusted.",
-        "Affirmative. Recalculating trajectory parameters. ETA: 2.3 minutes.",
-        "Command received. Neural network analysis complete. Confidence: 98.4%.",
-        "Acknowledged. Orbital insertion vector updated. HUD overlay transmitted.",
-        "Roger that. Deep space telemetry confirms your directive. Standing by.",
-      ];
-      const aiMsg = document.createElement('div');
-      aiMsg.style.cssText = 'max-width:80%;background:rgba(255,255,255,0.05);border-radius:0 12px 12px 12px;padding:14px 18px;border:1px solid rgba(255,255,255,0.06);';
-      aiMsg.innerHTML = `<p style="font-size:14px;line-height:1.6;color:var(--text);">${replies[Math.floor(Math.random()*replies.length)]}</p>`;
-      chatArea.appendChild(aiMsg);
-      aiMsg.scrollIntoView({ behavior: 'smooth' });
-    }, 800);
     userMsg.scrollIntoView({ behavior: 'smooth' });
+
+    // Typing indicator
+    const typingMsg = document.createElement('div');
+    typingMsg.style.cssText = 'max-width:80%;background:rgba(255,255,255,0.05);border-radius:0 12px 12px 12px;padding:14px 18px;border:1px solid rgba(255,255,255,0.06);';
+    typingMsg.innerHTML = `<p style="font-size:14px;line-height:1.6;color:var(--text-dim);">Oracle is thinking…</p>`;
+    chatArea.appendChild(typingMsg);
+    typingMsg.scrollIntoView({ behavior: 'smooth' });
+
+    fetch(`${API_BASE}/api/chatbot`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: val, sessionId: oracleSessionId }),
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          oracleSessionId = json.data.sessionId || oracleSessionId;
+          typingMsg.querySelector('p').textContent = json.data.reply;
+          typingMsg.querySelector('p').style.color = 'var(--text)';
+        } else {
+          typingMsg.querySelector('p').textContent = 'Oracle is offline. Please try again shortly.';
+        }
+        typingMsg.scrollIntoView({ behavior: 'smooth' });
+      })
+      .catch(() => {
+        typingMsg.querySelector('p').textContent = 'Connection to Oracle backend failed.';
+        typingMsg.scrollIntoView({ behavior: 'smooth' });
+      });
+  }
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ═══════════════════════ LIVE BACKEND DATA ═══════════════════════
+  const API_BASE = 'https://spaceaetheros.onrender.com';
+
+  // ── ISS position: real position, updated every 8s ──
+  function fetchISSPosition() {
+    fetch(`${API_BASE}/api/iss/position`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (!json.success) return;
+        const d = json.data;
+        const altEl = document.getElementById('iss-altitude');
+        const velEl = document.getElementById('iss-velocity');
+        const latEl = document.getElementById('iss-lat');
+        const lngEl = document.getElementById('iss-lng');
+        const updEl = document.getElementById('iss-updated');
+        const dashVel = document.getElementById('dash-velocity');
+        const marker = document.getElementById('iss-marker');
+
+        if (altEl) altEl.textContent = `${d.altitude.toFixed(1)} KM`;
+        if (velEl) velEl.textContent = `${Math.round(d.velocity).toLocaleString()} KM/H`;
+        if (latEl) latEl.textContent = `LAT: ${d.latitude.toFixed(3)}° ${d.latitude >= 0 ? 'N' : 'S'}`;
+        if (lngEl) lngEl.textContent = `LNG: ${d.longitude.toFixed(3)}° ${d.longitude >= 0 ? 'E' : 'W'}`;
+        if (updEl) updEl.textContent = `Live · updated ${new Date().toLocaleTimeString()}`;
+        if (dashVel) dashVel.textContent = Math.round(d.velocity).toLocaleString();
+
+        if (marker) {
+          // Map real lat/lon onto the stylized map panel (equirectangular)
+          const leftPct = ((d.longitude + 180) / 360) * 100;
+          const topPct = ((90 - d.latitude) / 180) * 100;
+          marker.style.left = `${Math.min(95, Math.max(5, leftPct))}%`;
+          marker.style.top = `${Math.min(90, Math.max(10, topPct))}%`;
+        }
+      })
+      .catch(() => {
+        const updEl = document.getElementById('iss-updated');
+        if (updEl) updEl.textContent = 'Live feed temporarily unavailable';
+      });
+  }
+
+  // ── ISS crew count: shown as landing-page stat ──
+  function fetchISSCrew() {
+    fetch(`${API_BASE}/api/iss/crew`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (!json.success) return;
+        document.querySelectorAll('#landing-crew, #dash-crew').forEach((el) => { el.textContent = json.data.count; });
+      })
+      .catch(() => {});
+  }
+
+  // ── NEO anomaly data: real NASA feed + our SGP4/z-score analysis ──
+  function fetchNEOData() {
+    fetch(`${API_BASE}/api/nasa/asteroids/anomalies`)
+      .then((r) => r.json())
+      .then((json) => {
+        const threatEl = document.getElementById('landing-neo-threats');
+        const grid = document.getElementById('asteroid-grid');
+        if (!json.success || !grid) return;
+        const d = json.data;
+
+        if (threatEl) threatEl.textContent = d.skipped ? '—' : d.anomalyCount;
+
+        if (d.skipped) {
+          grid.innerHTML = `<div class="stat-card"><div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--text-dim);">${d.reason || 'Not enough objects today for statistical analysis.'}</div></div>`;
+          return;
+        }
+
+        const items = (d.anomalies.length > 0 ? d.anomalies : []).slice(0, 4);
+        if (items.length === 0) {
+          grid.innerHTML = `<div class="stat-card"><div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--text-dim);">No statistically anomalous objects in today's batch of ${d.analyzed}. All near-earth objects tracked nominally.</div></div>`;
+          return;
+        }
+        grid.innerHTML = items.map((a) => {
+          const flagText = a.anomalyFlags.map((f) => f.note).join(', ');
+          return `<div class="stat-card" style="border-top-color:rgba(255,100,100,0.3);">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+              <div>
+                <div style="font-family:'Sora',sans-serif;font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;">${escapeHtml(a.name)}</div>
+                <div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--text-dim);">Diameter: ${a.diameterKm} km &nbsp;|&nbsp; Vel: ${a.velocityKmS} km/s &nbsp;|&nbsp; ${escapeHtml(flagText)}</div>
+              </div>
+              <span style="padding:6px 14px;border-radius:999px;font-family:'Geist Mono',monospace;font-size:11px;color:#ff7070;border:1px solid rgba(255,100,100,0.3);background:rgba(255,100,100,0.08);">ANOMALY</span>
+            </div>
+          </div>`;
+        }).join('');
+      })
+      .catch(() => {
+        const grid = document.getElementById('asteroid-grid');
+        if (grid) grid.innerHTML = `<div class="stat-card"><div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--text-dim);">NEO data temporarily unavailable.</div></div>`;
+      });
+  }
+
+  // ── Real network latency: round-trip ping to the backend ──
+  function fetchLatency() {
+    const start = performance.now();
+    fetch(`${API_BASE}/health`)
+      .then(() => {
+        const ms = Math.round(performance.now() - start);
+        document.querySelectorAll('#landing-latency, #dash-latency').forEach((el) => { el.textContent = `${ms}ms`; });
+      })
+      .catch(() => {
+        document.querySelectorAll('#landing-latency, #dash-latency').forEach((el) => { el.textContent = '—'; });
+      });
+  }
+
+  // ── Kick off + poll live data ──
+  function initLiveData() {
+    fetchISSPosition();
+    fetchISSCrew();
+    fetchNEOData();
+    fetchLatency();
+    setInterval(fetchISSPosition, 8000);
+    setInterval(fetchLatency, 15000);
+    setInterval(fetchNEOData, 120000); // NASA NEO data changes slowly
   }
 
   // ── Dashboard init ──
@@ -1366,6 +1479,7 @@
   window.addEventListener('resize', applyResponsive);
   applyResponsive();
   initCountdown();
+  initLiveData();
 </script>
 </body>
 </html>
