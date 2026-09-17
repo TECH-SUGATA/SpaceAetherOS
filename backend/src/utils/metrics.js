@@ -7,14 +7,14 @@
 const MAX_SAMPLES = 500; // ring-buffer size per bucket, keeps memory bounded
 
 class RollingWindow {
-  constructor(max = MAX_SAMPLES) {
-    this.max = max;
+  constructor(maxSize = MAX_SAMPLES) {
+    this.maxSize = maxSize;
     this.samples = [];
   }
 
   push(value) {
     this.samples.push(value);
-    if (this.samples.length > this.max) this.samples.shift();
+    if (this.samples.length > this.maxSize) this.samples.shift();
   }
 
   percentile(p) {
