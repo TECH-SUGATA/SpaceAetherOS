@@ -23,6 +23,7 @@ const allowedOrigins = [
   'http://127.0.0.1:5500',
   'http://localhost:5173',
   'https://aetheros.vercel.app',
+  'https://space-aether-os.vercel.app',
 ];
 
 app.use(cors({
