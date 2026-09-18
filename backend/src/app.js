@@ -8,7 +8,10 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 const requestTimer = require('./middleware/requestTimer');
 
-const app = express();
+   const app = express();
+
+   // Trust Render's reverse proxy so express-rate-limit reads the real client IP correctly
+   app.set('trust proxy', 1);
 
 // ── SECURITY ──
 app.use(helmet({
