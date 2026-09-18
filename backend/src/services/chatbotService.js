@@ -3,7 +3,7 @@ const axios = require('../utils/httpClient');
 const ChatHistory = require('../models/ChatHistory');
 const { v4: uuidv4 } = require('crypto');
 
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 const SPACE_SYSTEM_PROMPT = `You are ORACLE, the AI assistant for AetherOS — a real-time global space command dashboard. 
 You are an expert in:
@@ -35,10 +35,17 @@ class ChatbotService {
   async sendMessage(userId, message, sessionId = null) {
     const sid = sessionId || require('crypto').randomBytes(16).toString('hex');
 
-    // Try Gemini API if key is configured
+    // Try Gemini API if key is configured; fall back gracefully on any failure
+    // (bad/missing key, model retired, rate limit, network issue) instead of
+    // letting the whole request 500.
     let reply;
     if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here') {
-      reply = await this._queryGemini(message);
+      try {
+        reply = await this._queryGemini(message);
+      } catch (err) {
+        console.error('Gemini API call failed, using fallback response:', err.message);
+        reply = this._getFallbackResponse(message);
+      }
     } else {
       // Intelligent fallback responses
       reply = this._getFallbackResponse(message);
